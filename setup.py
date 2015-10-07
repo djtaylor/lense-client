@@ -32,5 +32,5 @@ setup(
             'lense = lense.client.interface:cli',
         ],
     },
-    exclude_package_data = {'': 'lense/__init__.py'}
+    exclude_package_data = {'': ['lense/__init__.py']}
 )
