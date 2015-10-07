@@ -9,7 +9,7 @@ PYTHONS:=$(shell pyversions -vr)
 override_dh_auto_install:
 	set -e && for pyvers in $(PYTHONS); do \
 		python$$pyvers setup.py install --install-layout=deb \
-			--root $(CURDIR)/debian/python-feedback; \
+			--root $(CURDIR)/debian/lense-client; \
 	done
 
 override_dh_clean:

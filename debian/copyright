@@ -1,7 +1,7 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: python-feedback
+Upstream-Name: lense-client
 Upstream-Contact: David Taylor <djtaylor13@gmail.com>
-Source: https://github.com/djtaylor/python-feedback
+Source: https://github.com/djtaylor/lense-client
 
 Files: *
 Copyright: © 2015 David Taylor <djtaylor13@gmail.com>
