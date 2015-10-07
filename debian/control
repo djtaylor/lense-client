@@ -1,0 +1,19 @@
+Source: lense-client
+Section: python
+Priority: optional
+Maintainer: David Taylor <djtaylor13@gmail.com>
+Build-Depends: debhelper (>= 9),
+               python (>= 2.7),
+               python-setuptools (>= 3.3),
+               python-wheel (>= 0.24.0),
+               lense-common (>= 0.1.1)
+Standards-Version: 3.9.5
+Homepage: https://github.com/djtaylor/lense-client
+Vcs-Git: git://github.com/djtaylor/lense-client.git
+Vcs-Browser: https://github.com/djtaylor/lense-client
+X-Python-Version: >= 2.7
+
+Package: lense-client
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: Client libraries for interacting with the Lense API platform.
