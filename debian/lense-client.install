@@ -1,11 +1,3 @@
-etc/lense/client.default.json etc/lense/
-etc/lense/client.mapper.json etc/lense/ 
-usr/lib/python2.7/dist-packages/lense/client/__init__.py usr/lib/python2.7/dist-packages/lense/client/
-usr/lib/python2.7/dist-packages/lense/client/base.py usr/lib/python2.7/dist-packages/lense/client/
-usr/lib/python2.7/dist-packages/lense/client/interface.py usr/lib/python2.7/dist-packages/lense/client/
-usr/lib/python2.7/dist-packages/lense/client/manager.py usr/lib/python2.7/dist-packages/lense/client/
-usr/lib/python2.7/dist-packages/lense/client/module/bootstrap.py usr/lib/python2.7/dist-packages/lense/client/module/
-usr/lib/python2.7/dist-packages/lense/client/module/gateway.py usr/lib/python2.7/dist-packages/lense/client/module/
-usr/lib/python2.7/dist-packages/lense/client/module/group.py usr/lib/python2.7/dist-packages/lense/client/module/
-usr/lib/python2.7/dist-packages/lense/client/module/user.py usr/lib/python2.7/dist-packages/lense/client/module/
+etc/lense/* etc/lense/
+usr/lib/python2.7/dist-packages/lense/client /usr/lib/python2.7/dist-packages/lense/
 usr/bin/lense usr/bin/
