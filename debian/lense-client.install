@@ -1,3 +1,5 @@
-etc/lense/* etc/lense/
+etc/lense/client.default.json etc/lense/
+etc/lense/client.json /etc/lense/
+etc/lense/client.mapper.json /etc/lense/
 usr/lib/python2.7/dist-packages/lense/client /usr/lib/python2.7/dist-packages/lense/
 usr/bin/lense usr/bin/
