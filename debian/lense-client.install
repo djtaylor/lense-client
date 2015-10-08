@@ -1,0 +1,3 @@
+src/etc/lense/* etc/lense/
+src/usr/lib/python2.7/dist-packages/lense/client/* usr/lib/python2.7/dist-packages/lense/client/ 
+src/usr/bin/lense usr/bin/lense
