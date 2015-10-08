@@ -1,2 +1,0 @@
-include DESCRIPTION.rst
-exclude lense/__init__.py
