@@ -6,14 +6,14 @@ import argparse
 import importlib
 
 # Lense Libraries
-from lense.common.vars import C_CLIENT, C_MAPPER
+from lense.common.vars import LENSE_CONFIG
 from lense.client.manager import APIConnect
 from lense.common.utils import format_action
 from lense.common.objects import JSONObject
 
 # Load the client mapper
 MAP_JSON = JSONObject()
-MAP_JSON.from_file(C_MAPPER)
+MAP_JSON.from_file(LENSE_CONFIG.MAPPER)
 
 class _CLIModules(object):
     """
