@@ -4,7 +4,7 @@ import requests
 import importlib
 
 # Lense Libraries
-from lense.common.vars import C_MAPPER
+from lense.common.vars import LENSE_CONFIG
 from lense.common.http import HEADER, MIME_TYPE, parse_response, error_response
 
 class APIBase(object):
@@ -46,7 +46,7 @@ class APIBase(object):
 
         # Load the mapper JSON manifest
         map_json = None
-        with open(C_MAPPER, 'r') as f:
+        with open(LENSE_CONFIG.MAPPER, 'r') as f:
             map_json = json.loads(f.read())
 
         # Set the modules base
