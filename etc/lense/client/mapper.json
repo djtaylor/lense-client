@@ -1,29 +1,29 @@
 {
-	"base": "cloudscape.client.module",
+	"base": "lense.client.module",
 	"modules": [
 	    {
 	    	"id": "user",
 		    "module": "user",
 		    "class": "ModUser",
-		    "desc": "Manage Cloudscape users."
+		    "desc": "Manage Lense users."
 	    },
 	    {
 	    	"id": "group",
 	    	"module": "group",
 	    	"class": "ModGroup",
-	    	"desc": "Manage Cloudscape groups."
+	    	"desc": "Manage Lense groups."
 	    },
 	    {
 	    	"id": "gateway",
 	    	"module": "gateway",
 	    	"class": "ModGateway",
-	    	"desc": "Manage Cloudscape authentication."
+	    	"desc": "Manage Lense authentication."
 	    },
 	    {
 	    	"id": "bootstrap",
 	    	"module": "bootstrap",
 	    	"class": "ModBootstrap",
-	    	"desc": "Bootstrap the Cloudscape installation."
+	    	"desc": "Bootstrap the Lense installation."
 	    }
 	],
 	"args": [
@@ -31,7 +31,7 @@
     		"id": "api_user",
     		"short": "-u",
     		"long": "--api-user",
-    		"help": "The API user to authenticate with if not set as the environment variable 'CS_API_USER'",
+    		"help": "The API user to authenticate with if not set as the environment variable 'LENSE_API_USER'",
     		"action": "append",
     		"required": true
     	},
@@ -39,7 +39,7 @@
     		"id": "api_group",
     		"short": "-g",
     		"long": "--api-group",
-    		"help": "The API user group to authenticate with if not set as the environment variable 'CS_API_GROUP'",
+    		"help": "The API user group to authenticate with if not set as the environment variable 'LENSE_API_GROUP'",
     		"action": "append",
     		"required": true
     	},
@@ -47,7 +47,7 @@
     		"id": "api_key",
     		"short": "-k",
     		"long": "--api-key",
-    		"help": "The API key to authenticate with if not set as the environment variable 'CS_API_KEY'",
+    		"help": "The API key to authenticate with if not set as the environment variable 'LENSE_API_KEY'",
     		"action": "append",
     		"required": true
     	},
