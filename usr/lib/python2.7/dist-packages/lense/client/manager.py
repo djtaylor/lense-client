@@ -28,10 +28,9 @@ class APIConnect(object):
         
         # Configuration
         self.conf      = config.parse('CLIENT')
-        print self.conf
 
         # Server URL
-        self.api_url   = '{0}://{1}:{2}'.format(self.conf.server.proto, self.conf.server.host, self.conf.server.port)
+        self.api_url   = '{0}://{1}:{2}'.format(self.conf.engine.proto, self.conf.engine.host, self.conf.engine.port)
 
     def _get_token_headers(self):
         """

@@ -7,7 +7,7 @@ class ModBootstrap:
     def __init__(self, parent):
         self.parent = parent
         
-    def _default(self):
+    def _default(self, data=None):
         """
         Default bootstrap handler.
         """

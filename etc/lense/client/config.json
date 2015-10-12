@@ -1,24 +1,13 @@
 {
-	// API Administrator
-	//
-	// Define API administrator attributes used when creating the
-	// administrator account, as well as used when established a
-	// connection with internal utilities.
 	"admin": {
 		"user": "lense",
 		"group": "00000000-0000-0000-0000-000000000000",
 		"key": ""
 	},
-	
-	// Engine Configuration
-	//
-	// Define settings to use for connecting to the Lense engine.
 	"engine": {
 		"host": "localhost",
 		"proto": "http",
 		"port": 10550
 	},
-	
-	// Client Request Mapper
 	"mapper": "/etc/lense/client/mapper.json"
 }
