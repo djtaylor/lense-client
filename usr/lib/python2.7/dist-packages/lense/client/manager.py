@@ -27,10 +27,11 @@ class APIConnect(object):
         self.token_rsp = None
         
         # Configuration
-        self.conf      = config.parse()
+        self.conf      = config.parse('CLIENT')
+        print self.conf
 
         # Server URL
-        self.api_url   = '%s://%s:%s' % (self.conf.server.proto, self.conf.server.host, self.conf.server.port)
+        self.api_url   = '{0}://{1}:{2}'.format(self.conf.server.proto, self.conf.server.host, self.conf.server.port)
 
     def _get_token_headers(self):
         """
@@ -54,7 +55,7 @@ class APIConnect(object):
             return True
         
         # Authentication URL
-        auth_url       = '%s/%s' % (self.api_url, PATH.GET_TOKEN)
+        auth_url       = '{0}/{1}'.format(self.api_url, PATH.GET_TOKEN)
         
         # Get an API token
         self.token_rsp = parse_response(requests.get(auth_url, headers=self._get_token_headers()))
@@ -75,18 +76,21 @@ class APIConnect(object):
         else:
             return False
     
-    def construct(self):
+    def construct(self, use_api=True):
         """
         Construct and return the API connection and parameters objects.
         """
         
-        # Require an API key or token
-        if not self.api_key and not self.api_token:
-            error_response('Must supply either an API key or a token to make a request', cli=self.cli)
+        # If using the API server
+        if use_api:
         
-        # Retrieve a token if not supplied
-        if not self._get_token():
-            error_response('Failed to retrieve API token', response=self.token_rsp, cli=self.cli)  
+            # Require an API key or token
+            if not self.api_key and not self.api_token:
+                error_response('Must supply either an API key or a token to make a request', cli=self.cli)
+            
+            # Retrieve a token if not supplied
+            if not self._get_token():
+                error_response('Failed to retrieve API token', response=self.token_rsp, cli=self.cli)  
             
         # API connector parameters
         self.params = {

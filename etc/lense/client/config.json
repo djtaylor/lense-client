@@ -20,5 +20,5 @@
 	},
 	
 	// Client Request Mapper
-	"mapper": "data/conf/client.mapper.json"
+	"mapper": "/etc/lense/client/mapper.json"
 }

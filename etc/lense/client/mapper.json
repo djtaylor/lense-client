@@ -5,25 +5,38 @@
 	    	"id": "user",
 		    "module": "user",
 		    "class": "ModUser",
-		    "desc": "Manage Lense users."
+		    "desc": "Manage Lense users.",
+		    "api": true,
+		    "args": {
+		    	"required": ["api_user", "api_group", "api_key"]
+		    }
 	    },
 	    {
 	    	"id": "group",
 	    	"module": "group",
 	    	"class": "ModGroup",
-	    	"desc": "Manage Lense groups."
+	    	"desc": "Manage Lense groups.",
+	    	"api": true,
+	    	"args": {
+		    	"required": ["api_user", "api_group", "api_key"]
+		    }
 	    },
 	    {
 	    	"id": "gateway",
 	    	"module": "gateway",
 	    	"class": "ModGateway",
-	    	"desc": "Manage Lense authentication."
+	    	"desc": "Manage Lense authentication.",
+	    	"api": true,
+	    	"args": {
+		    	"required": ["api_user", "api_group", "api_key"]
+		    }
 	    },
 	    {
 	    	"id": "bootstrap",
 	    	"module": "bootstrap",
 	    	"class": "ModBootstrap",
-	    	"desc": "Bootstrap the Lense installation."
+	    	"desc": "Bootstrap the Lense installation.",
+	    	"api": false
 	    }
 	],
 	"args": [
@@ -32,24 +45,21 @@
     		"short": "-u",
     		"long": "--api-user",
     		"help": "The API user to authenticate with if not set as the environment variable 'LENSE_API_USER'",
-    		"action": "append",
-    		"required": true
+    		"action": "append"
     	},
     	{
     		"id": "api_group",
     		"short": "-g",
     		"long": "--api-group",
     		"help": "The API user group to authenticate with if not set as the environment variable 'LENSE_API_GROUP'",
-    		"action": "append",
-    		"required": true
+    		"action": "append"
     	},
     	{
     		"id": "api_key",
     		"short": "-k",
     		"long": "--api-key",
     		"help": "The API key to authenticate with if not set as the environment variable 'LENSE_API_KEY'",
-    		"action": "append",
-    		"required": true
+    		"action": "append"
     	},
     	{
     		"id": "api_data",

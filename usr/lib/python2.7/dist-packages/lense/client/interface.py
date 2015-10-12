@@ -1,9 +1,11 @@
+from __future__ import print_function
 import os
 import re
 import sys
 import json
 import argparse
 import importlib
+from copy import copy
 
 # Lense Libraries
 from lense.common.vars import LENSE_CONFIG
@@ -21,7 +23,7 @@ class _CLIModules(object):
     """
     def __init__(self):
         
-        # Internal modules object
+        # Internal modules
         self._modules    = {}
         
         # Help prompt
@@ -43,10 +45,10 @@ class _CLIModules(object):
         
         # Process each module definition
         for mod in MAP_JSON.search('modules'):
-            self._modules[mod['id']] = []
+            self._modules[mod['id']] = {}
             
             # Load the interface module
-            iface_mod = '%s.%s' % (mod_base, mod.get('module'))
+            iface_mod = '{0}.{1}'.format(mod_base, mod.get('module'))
             
             # Load the interface request handler
             re_mod   = importlib.import_module(iface_mod)
@@ -55,7 +57,7 @@ class _CLIModules(object):
             # Load the public classes for the interface module
             for attr in dir(re_class):
                 if not re.match(r'^__.*$', attr):
-                    self._modules[mod.get('id')].append(attr)
+                    self._modules[mod.get('id')][attr] = getattr(re_class, attr)
             
             # Add the module to the help menu
             help_prompt += format_action(mod.get('id'), mod.get('desc'))
@@ -132,8 +134,8 @@ class _CLIArgs(object):
         """
         
         # Get the value from argparse
-        _raw = self._args.get(k, default)
-        _val = _raw if not isinstance(_raw, list) else _raw[0]
+        _raw = self._args.get(k)
+        _val = (_raw if _raw else default) if not isinstance(_raw, list) else (_raw[0] if _raw[0] else default)
         
         # Return the value
         return _val if not use_json else json.dumps(_val)
@@ -152,6 +154,12 @@ class CLIClient(object):
         self.modules = _CLIModules()
         self.args    = _CLIArgs(mod_help=self.modules.help_prompt)
     
+        # Module attributes
+        self._mod_id = None
+        self._module = None
+        self._action = None
+        self._method = None
+    
         # API connection attributes
         self._get_api_env()
     
@@ -165,7 +173,7 @@ class CLIClient(object):
             pre()
         
         # Write the error message to stderr
-        sys.stderr.write('%s\n' % msg)
+        sys.stderr.write('{0}\n'.format(msg))
         
         # Optional post-failure method
         if post and callable(post):
@@ -194,7 +202,7 @@ class CLIClient(object):
         """
         Establish an API connection using the client libraries.
         """
-        
+
         # Connection parameters
         params = {
             'user': self.args.get('api_user'), 
@@ -204,11 +212,45 @@ class CLIClient(object):
         }
         
         # Create the API client and connection objects
-        self.client, self.connect = APIConnect(**params).construct()
+        self.client, self.connect = APIConnect(**params).construct(self._module.get('api', False))
     
         # If token retrieval/connection failed
         if not self.client:
-            self._die('HTTP %s: %s' % (self.connect['code'], self.connect['body'].get('error', 'An unknown error occurred')))
+            self._die('HTTP {0}: {1}'.format(self.connect['code'], self.connect['body'].get('error', 'An unknown error occurred')))
+    
+    def _list_actions(self, module):
+        """
+        List support actions for a module.
+        """
+        if self.args.get('list'):
+            print('\nSupported actions for module "{0}":\n'.format(self._module))
+            for k in self._public_keys():
+                print('> {0}'.format(k))
+            print('')
+            sys.exit(0)
+    
+    def _get_module(self):
+        """
+        Get module attributes.
+        """
+        
+        # Module ID
+        self._mod_id = self.args.get('module')
+        
+        # Module attributes / action / method
+        self._module = self.modules.get(self._mod_id)
+        self._action = self.args.get('action', '_default')
+        self._method = self._module.get(self._action, None)
+    
+    def _public_keys(self):
+        """
+        Return the public keys for a module.
+        """
+        if '_default' in self._module:
+            mod_public = copy(self._module)
+            del mod_public['_default']
+            return mod_public.keys()
+        return self._module.keys()
     
     def interface(self):
         """
@@ -217,41 +259,34 @@ class CLIClient(object):
         
         # Handle incoming requests
         try:
-        
-            # Argument errors
-            for a in MAP_JSON.search('args'):
-                if a.get('required') and not self.args.get(a['id']):
-                    self._die('Missing required argument "%s"' % a['id'])
-            
-            # Establish the API connection
-            self._connect_api()
             
             # Unsupported module argument
             if not self.args.get('module') in self.modules.list():
-                self._die('\nUnsupported module argument "%s"\n' % self.args.get('module'), pre=self.args.parser.print_help)
+                self._die('\nUnsupported module argument "{0}"\n'.format(self.args.get('module')), pre=self.args.parser.print_help)
             
-            # Module attributes / action / method
-            module = self.modules.get(self.args.get('module'))
-            action = self.args.get('action', '_default')
-            method = module.get(action, None)
+            # Get module attributes
+            self._get_module()
+            
+            # Make a conditional API connection
+            self._connect_api()
+            
+            # Look for any required arguments
+            for r in MAP_JSON.search('modules/{0}/args/required'.format(self._mod_id), default=[]):
+                if not self.args.get(r):
+                    self._die('Missing required argument "{0}"'.format(r))
             
             # If listing module actions
-            if self.args.get('list'):
-                print '\nSupported actions for module "%s":\n' % self.args.get('module')
-                for a in module:
-                    print '> %s' % a
-                print ''
-                sys.exit(0)
+            self._list_actions(self.args.get('module'))                
             
             # If no method found
-            if not method:
-                err = '\nUnsupported module action "%s"' % self.args.get('action')
-                err += 'Supported actions are: %s\n' % json.dumps(module)
+            if not self._method:
+                err = '\nUnsupported module action "{0}"\n'.format(self.args.get('action'))
+                err += 'Supported actions are: {0}\n'.format(json.dumps(', '.join(self._public_keys())))
                 self._die(err, pre=self.args.parser.print_help)
 
             # Get the client module method
             mod_object = getattr(self.client, self.args.get('module'))
-            mod_method = getattr(mod_object, action)
+            mod_method = getattr(mod_object, self._action)
             
             # If submitting extra API request data
             response = mod_method(self.args.get('api_data', use_json=True))
@@ -261,10 +296,12 @@ class CLIClient(object):
             r_body   = response.get('body')
             
             # Print the response
-            print 'HTTP %s: %s' % (r_code, r_body if not isinstance(r_body, (list, dict)) else json.dumps(r_body))
+            print('HTTP {0}: {1}'.format(r_code, r_body if not isinstance(r_body, (list, dict)) else json.dumps(r_body)))
     
         # Error in handling arguments
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             self._die(str(e))
             
 def cli():

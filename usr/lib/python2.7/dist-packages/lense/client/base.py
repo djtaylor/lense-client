@@ -54,7 +54,7 @@ class APIBase(object):
         
         # Load each module
         for mod in map_json['modules']:
-            api_mod = '%s.%s' % (mod_base, mod['module'])
+            api_mod = '{0}.{1}'.format(mod_base, mod['module'])
             
             # Load the API endpoint handler
             ep_mod   = importlib.import_module(api_mod)
@@ -91,7 +91,7 @@ class APIBase(object):
         """
         
         # Set the request URL to the API endpoint path
-        get_url = '%s/%s' % (self.API_URL, path)
+        get_url = '{0}/{1}'.format(self.API_URL, path)
         
         # POST the request and get the response
         response = requests.delete(get_url, headers=self.API_HEADERS, params=data)
@@ -105,7 +105,7 @@ class APIBase(object):
         """
         
         # Set the request URL to the API endpoint path
-        get_url = '%s/%s' % (self.API_URL, path)
+        get_url = '{0}/{1}'.format(self.API_URL, path)
         
         # POST the request and get the response
         response = requests.put(get_url, headers=self.API_HEADERS, params=data)
@@ -119,7 +119,7 @@ class APIBase(object):
         """
         
         # Set the request URL to the API endpoint path
-        get_url = '%s/%s' % (self.API_URL, path)
+        get_url = '{0}/{1}'.format(self.API_URL, path)
         
         # POST the request and get the response
         response = requests.get(get_url, headers=self.API_HEADERS, params=data)
@@ -133,7 +133,7 @@ class APIBase(object):
         """
         
         # Set the request URL to the API endpoint path
-        post_url = '%s/%s' % (self.API_URL, path)
+        post_url = '{0}/{1}'.format(self.API_URL, path)
         
         # POST the request and get the response
         response = requests.post(post_url, headers=self.API_HEADERS, data=json.dumps(data))
