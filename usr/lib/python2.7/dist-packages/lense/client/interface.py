@@ -191,9 +191,9 @@ class CLIClient(object):
         # If any are found, store them and return
         _api = {}
         for k,v in {
-            'api_user':  'CS_API_USER',
-            'api_key':   'CS_API_KEY',
-            'api_group': 'CS_API_GROUP'
+            'api_user':  'LENSE_API_USER',
+            'api_key':   'LENSE_API_KEY',
+            'api_group': 'LENSE_API_GROUP'
         }.iteritems():
             if v in os.environ:
                 self.args.set(k, os.environ[v])
