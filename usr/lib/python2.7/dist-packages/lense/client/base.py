@@ -80,7 +80,12 @@ class APIBase(object):
         
         # If there was an error during the request
         if parsed['code'] != 200:
-            error_response(parsed['body']['message'], response=parsed, cli=self.cli)
+            
+            # Extract the error message
+            msg = parsed['body'] if not isinstance(parsed['body'], dict) else parsed['body']['message']
+            
+            # Return an error response
+            error_response(msg, response=parsed, cli=self.cli)
 
         # Return a successfull response
         return parsed
