@@ -75,21 +75,18 @@ class APIConnect(object):
         else:
             return False
     
-    def construct(self, use_api=True):
+    def construct(self):
         """
         Construct and return the API connection and parameters objects.
         """
         
-        # If using the API server
-        if use_api:
+        # Require an API key or token
+        if not self.api_key and not self.api_token:
+            error_response('Must supply either an API key or a token to make a request', cli=self.cli)
         
-            # Require an API key or token
-            if not self.api_key and not self.api_token:
-                error_response('Must supply either an API key or a token to make a request', cli=self.cli)
-            
-            # Retrieve a token if not supplied
-            if not self._get_token():
-                error_response('Failed to retrieve API token', response=self.token_rsp, cli=self.cli)  
+        # Retrieve a token if not supplied
+        if not self._get_token():
+            error_response('Failed to retrieve API token', response=self.token_rsp, cli=self.cli)  
             
         # API connector parameters
         self.params = {

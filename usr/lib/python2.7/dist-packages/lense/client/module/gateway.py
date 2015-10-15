@@ -9,7 +9,7 @@ class ModGateway:
         """
         Get an API token.
         """
-        return self.parent._get('gateway/token', data=data)
+        return True
     
     def get_acl(self, data=None):
         """
@@ -27,7 +27,7 @@ class ModGateway:
         """
         Retrieve a listing of API utilities.
         """
-        return self.parent._put('gateway/utilities', data=data)
+        return self.parent._get('gateway/utilities', data=data)
     
     def open_utility(self, data=None):
         """

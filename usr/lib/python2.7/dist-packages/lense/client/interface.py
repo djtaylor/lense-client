@@ -212,7 +212,7 @@ class CLIClient(object):
         }
         
         # Create the API client and connection objects
-        self.client, self.connect = APIConnect(**params).construct(self._module.get('api', False))
+        self.client, self.connect = APIConnect(**params).construct()
     
         # If token retrieval/connection failed
         if not self.client:
@@ -257,7 +257,7 @@ class CLIClient(object):
             # Get module attributes
             self._get_module()
             
-            # Make a conditional API connection
+            # Make an API connection
             self._connect_api()
             
             # Look for any required arguments
@@ -278,8 +278,16 @@ class CLIClient(object):
             mod_object = getattr(self.client, self.args.get('module'))
             mod_method = getattr(mod_object, self._action)
             
-            # If submitting extra API request data
-            response = mod_method(self.args.get('api_data', use_json=True))
+            # If retrieving a token
+            if (self.args.get('module') == 'gateway') and (self._action == 'get_token'):
+                response = {
+                    'code': 200,
+                    'body': {'token': self.connect.get('token') }
+                }
+            
+            # Other request
+            else:
+                response = mod_method(self.args.get('api_data', use_json=True))
             
             # Response attributes
             r_code   = response.get('code')
