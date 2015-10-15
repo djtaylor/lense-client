@@ -239,18 +239,8 @@ class CLIClient(object):
         
         # Module attributes / action / method
         self._module = self.modules.get(self._mod_id)
-        self._action = self.args.get('action', '_default')
+        self._action = self.args.get('action')
         self._method = self._module.get(self._action, None)
-    
-    def _public_keys(self):
-        """
-        Return the public keys for a module.
-        """
-        if '_default' in self._module:
-            mod_public = copy(self._module)
-            del mod_public['_default']
-            return mod_public.keys()
-        return self._module.keys()
     
     def interface(self):
         """
@@ -271,9 +261,9 @@ class CLIClient(object):
             self._connect_api()
             
             # Look for any required arguments
-            for r in MAP_JSON.search('modules/{0}/args/required'.format(self._mod_id), default=[]):
-                if not self.args.get(r):
-                    self._die('Missing required argument "{0}"'.format(r))
+            for a in ['api_user', 'api_group', 'api_key']:
+                if not self.args.get(a):
+                    self._die('Missing required argument "{0}"'.format(a))
             
             # If listing module actions
             self._list_actions(self.args.get('module'))                
@@ -281,7 +271,7 @@ class CLIClient(object):
             # If no method found
             if not self._method:
                 err = '\nUnsupported module action "{0}"\n'.format(self.args.get('action'))
-                err += 'Supported actions are: {0}\n'.format(json.dumps(', '.join(self._public_keys())))
+                err += 'Supported actions are: {0}\n'.format(json.dumps(', '.join(self._module)))
                 self._die(err, pre=self.args.parser.print_help)
 
             # Get the client module method

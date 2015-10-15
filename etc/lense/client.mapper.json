@@ -5,38 +5,19 @@
 	    	"id": "user",
 		    "module": "user",
 		    "class": "ModUser",
-		    "desc": "Manage Lense users.",
-		    "api": true,
-		    "args": {
-		    	"required": ["api_user", "api_group", "api_key"]
-		    }
+		    "desc": "Manage Lense users."
 	    },
 	    {
 	    	"id": "group",
 	    	"module": "group",
 	    	"class": "ModGroup",
-	    	"desc": "Manage Lense groups.",
-	    	"api": true,
-	    	"args": {
-		    	"required": ["api_user", "api_group", "api_key"]
-		    }
+	    	"desc": "Manage Lense groups."
 	    },
 	    {
 	    	"id": "gateway",
 	    	"module": "gateway",
 	    	"class": "ModGateway",
-	    	"desc": "Manage Lense authentication.",
-	    	"api": true,
-	    	"args": {
-		    	"required": ["api_user", "api_group", "api_key"]
-		    }
-	    },
-	    {
-	    	"id": "bootstrap",
-	    	"module": "bootstrap",
-	    	"class": "ModBootstrap",
-	    	"desc": "Bootstrap the Lense installation.",
-	    	"api": false
+	    	"desc": "Manage Lense authentication."
 	    }
 	],
 	"args": [
