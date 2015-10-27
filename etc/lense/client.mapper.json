@@ -18,7 +18,13 @@
 	    	"module": "gateway",
 	    	"class": "ModGateway",
 	    	"desc": "Manage Lense authentication."
-	    }
+	    },
+	   	{
+	   		"id": "connector",
+	   		"module": "connector",
+	   		"class": "ModConnector",
+	   		"desc": "Manage Lense API connectors."
+	   	}
 	],
 	"args": [
 	    {

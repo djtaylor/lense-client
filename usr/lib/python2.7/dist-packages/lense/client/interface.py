@@ -93,6 +93,26 @@ class _CLIArgs(object):
         # Construct arguments
         self._construct()
         
+    def _json_load_recursive(self, json_str):
+        """
+        Process a string as many times as needed to make a pure Python object.
+        """
+        
+        # If the argument is empty
+        if not json_str: return None
+        
+        # If the argument is already an object
+        if isinstance(json_str, dict):
+            return json_str
+        
+        # Initial data load
+        json_data = json.loads(json_str)
+        
+        # Recurse if not fully converted
+        if not isinstance(json_data, dict):
+            return self._json_load_recursive(json_data)
+        return json_data
+        
     def list(self):
         """
         Return a list of argument keys.
@@ -138,7 +158,7 @@ class _CLIArgs(object):
         _val = (_raw if _raw else default) if not isinstance(_raw, list) else (_raw[0] if _raw[0] else default)
         
         # Return the value
-        return _val if not use_json else json.dumps(_val)
+        return _val if not use_json else self._json_load_recursive(_val)
 
 class CLIClient(object):
     """
