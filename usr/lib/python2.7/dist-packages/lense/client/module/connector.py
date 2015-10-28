@@ -17,7 +17,7 @@ class ModConnector:
         """
         return self.parent._post('connector', data=data)
     
-    def updated(self, data={}):
+    def update(self, data={}):
         """
         Update an existing connector.
         """
