@@ -28,7 +28,7 @@
 	   	{
 	   		"id": "integrator",
 	   		"module": "integrator",
-	   		"class": "ModConnector",
+	   		"class": "ModIntegrator",
 	   		"desc": "Manage Lense API integrators"
 	   	}
 	],
