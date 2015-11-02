@@ -21,7 +21,7 @@ class ModConnector:
         """
         Update an existing connector.
         """
-        return self.parent._post('connector', data=data)
+        return self.parent._put('connector', data=data)
     
     def delete(self, data={}):
         """
