@@ -1,6 +1,7 @@
 import sys
 import json
 import requests
+from os.path import expanduser, isfile
 
 # Lense Libraries
 from lense.common import config
@@ -15,22 +16,60 @@ class APIConnect(object):
     def __init__(self, user, group, api_key=None, api_token=None, cli=False):
         
         # API connection attributes
-        self.api_user  = user       # API user
-        self.api_group = group      # API group
-        self.api_key   = api_key    # API key
-        self.api_token = api_token  # API token
+        self.api_user    = user       # API user
+        self.api_group   = group      # API group
+        self.api_key     = api_key    # API key
+        self.api_token   = api_token  # API token
         
         # Is this being run from the command line client
-        self.cli       = cli
+        self.cli         = cli
         
-        # Token response
-        self.token_rsp = None
+        # Token response / cache file
+        self.token_rsp   = None
+        self.token_cache = expanduser('~/.lense-token-cache')
         
         # Configuration
-        self.conf      = config.parse('CLIENT')
+        self.conf        = config.parse('CLIENT')
 
         # Server URL
-        self.api_url   = '{0}://{1}:{2}'.format(self.conf.engine.proto, self.conf.engine.host, self.conf.engine.port)
+        self.api_url     = '{0}://{1}:{2}'.format(self.conf.engine.proto, self.conf.engine.host, self.conf.engine.port)
+
+    def _cache_token_exists(self):
+        """
+        Check if the token cache exists and contains a non empty string.
+        """
+        if isfile(self.token_cache):
+            with open(self.token_cache, 'r') as f:
+                token_str = f.read()
+                if token_str:
+                    return True
+                return False
+        return False
+
+    def _cache_token_get(self):
+        """
+        Retrieve a cached token string.
+        """
+        if self.cli:
+            if isfile(self.token_cache):
+                with open(self.token_cache, 'r') as f:
+                    return f.read()
+            return False
+        return False
+
+    def _cache_token_set(self, token):
+        """
+        Cache the token if running from the command line.
+        """
+        if self.cli:
+            
+            # Store the token string
+            with open(self.token_cache, 'w') as f:
+                f.write(token)
+
+            # Return the token
+            return token
+        return False
 
     def _get_token_headers(self):
         """
@@ -53,6 +92,11 @@ class APIConnect(object):
         if self.api_token:
             return True
         
+        # If a token is cached
+        if self._cache_token_exists():
+            self.api_token = self._cache_token_get()
+            return True
+        
         # Authentication URL
         auth_url       = '{0}/{1}'.format(self.api_url, PATH.GET_TOKEN)
         
@@ -66,7 +110,7 @@ class APIConnect(object):
         if self.token_rsp['code'] == 200:
             
             # Load the authorization token
-            self.api_token = self.token_rsp['body']['token']
+            self.api_token = self._cache_token_set(self.token_rsp['body']['token'])
         
             # Token retrieval OK
             return True
