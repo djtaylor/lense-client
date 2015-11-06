@@ -30,6 +30,12 @@
 	   		"module": "integrator",
 	   		"class": "ModIntegrator",
 	   		"desc": "Manage Lense API integrators"
+	   	},
+	   	{
+	   		"id": "stats",
+	   		"module": "stats",
+	   		"class": "ModStats",
+	   		"desc": "Manage Lense API statistics"
 	   	}
 	],
 	"args": [
