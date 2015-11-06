@@ -244,7 +244,7 @@ class CLIClient(object):
         """
         if self.args.get('list'):
             print('\nSupported actions for module "{0}":\n'.format(self._module))
-            for k in self._public_keys():
+            for k in self.modules.get()():
                 print('> {0}'.format(k))
             print('')
             sys.exit(0)
