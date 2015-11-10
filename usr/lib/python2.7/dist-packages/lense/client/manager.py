@@ -1,12 +1,14 @@
 import sys
 import json
 import requests
+from os import environ
 from os.path import expanduser, isfile
 
 # Lense Libraries
 from lense.common import config
 from lense.client.base import APIBase
 from lense.common.http import HEADER, MIME_TYPE, PATH, parse_response, error_response
+from __builtin__ import True
 
 class APIConnect(object):
     """
@@ -26,7 +28,7 @@ class APIConnect(object):
         
         # Token response / cache file
         self.token_rsp   = None
-        self.token_cache = expanduser('~/.lense-token-cache')
+        self.token_cache = 'LENSE_API_TOKEN'
         
         # Configuration
         self.conf        = config.parse('CLIENT')
@@ -38,38 +40,33 @@ class APIConnect(object):
         """
         Check if the token cache exists and contains a non empty string.
         """
-        if isfile(self.token_cache):
-            with open(self.token_cache, 'r') as f:
-                token_str = f.read()
-                if token_str:
-                    return True
-                return False
+        if environ.get(self.token_cache, None):
+            return True
         return False
 
     def _cache_token_get(self):
         """
         Retrieve a cached token string.
         """
-        if self.cli:
-            if isfile(self.token_cache):
-                with open(self.token_cache, 'r') as f:
-                    return f.read()
-            return False
+        token_env = environ.get(self.token_cache, None)
+        
+        # If the token is set
+        if token_env:
+            return token_env
+        
+        # No cached token
         return False
 
     def _cache_token_set(self, token):
         """
         Cache the token if running from the command line.
         """
-        if self.cli:
-            
-            # Store the token string
-            with open(self.token_cache, 'w') as f:
-                f.write(token)
-
-            # Return the token
-            return token
-        return False
+        
+        # Set the environment variable
+        environ[self.token_cache] = token
+        
+        # Return the token
+        return token
 
     def _get_token_headers(self):
         """
