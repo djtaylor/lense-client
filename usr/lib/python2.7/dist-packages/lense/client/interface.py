@@ -243,8 +243,8 @@ class CLIClient(object):
         List support actions for a module.
         """
         if self.args.get('list'):
-            print('\nSupported actions for module "{0}":\n'.format(self._module))
-            for k in self.modules.get()():
+            print('\nSupported actions for module "{0}":\n'.format(module))
+            for k in self.modules.get(module):
                 print('> {0}'.format(k))
             print('')
             sys.exit(0)
@@ -299,7 +299,7 @@ class CLIClient(object):
             mod_method = getattr(mod_object, self._action)
             
             # If retrieving a token
-            if (self.args.get('module') == 'gateway') and (self._action == 'get_token'):
+            if (self.args.get('module') == 'token') and (self._action == 'get'):
                 response = {
                     'code': 200,
                     'body': {'token': self.connect.get('token') }
