@@ -11,7 +11,7 @@ from copy import copy
 from lense.common.vars import LENSE_CONFIG
 from lense.client.manager import APIConnect
 from lense.common.utils import format_action
-from lense.common.objects import JSONObject
+from lense.common.objects.json import JSONObject
 
 # Load the client mapper
 MAP_JSON = JSONObject()
