@@ -5,90 +5,32 @@ import sys
 import json
 import argparse
 import importlib
+import traceback
 from copy import copy
 
 # Lense Libraries
-from lense.common.vars import LENSE_CONFIG
+from lense.common import LenseCommon
+from lense.common.vars import CONFIG
 from lense.client.manager import APIConnect
 from lense.common.utils import format_action
 from lense.common.objects import JSONObject
+from lense.client.module import ClientModules
 
-# Load the client mapper
-MAP_JSON = JSONObject()
-MAP_JSON.from_file(LENSE_CONFIG.MAPPER)
+# Lense Common
+LENSE   = LenseCommon('CLIENT')
 
-class _CLIModules(object):
-    """
-    Class object for handling interface modules.
-    """
-    def __init__(self):
-        
-        # Internal modules
-        self._modules    = {}
-        
-        # Help prompt
-        self.help_prompt = None
-        
-        # Construct the modules object
-        self._construct()
-        
-    def _construct(self):
-        """
-        Return a list of supported module arguments.
-        """
-        
-        # Modules help menu
-        help_prompt = ''
-        
-        # Grab the base module path
-        mod_base = MAP_JSON.search('base')
-        
-        # Process each module definition
-        for mod in MAP_JSON.search('modules'):
-            self._modules[mod['id']] = {}
-            
-            # Load the interface module
-            iface_mod = '{0}.{1}'.format(mod_base, mod.get('module'))
-            
-            # Load the interface request handler
-            re_mod   = importlib.import_module(iface_mod)
-            re_class = getattr(re_mod, mod.get('class'))
-            
-            # Load the public classes for the interface module
-            for attr in dir(re_class):
-                if not re.match(r'^__.*$', attr):
-                    self._modules[mod.get('id')][attr] = getattr(re_class, attr)
-            
-            # Add the module to the help menu
-            help_prompt += format_action(mod.get('id'), mod.get('desc'))
-        
-        # Set the help prompt
-        self.help_prompt = help_prompt
-        
-    def get(self, module):
-        """
-        Get a modules attributes.
-        """
-        return self._modules.get(module, None)
-        
-    def list(self):
-        """
-        Return a list of available modules. 
-        """
-        return self._modules.keys()
+# Client modules
+MODULES = ClientModules()
 
-class _CLIArgs(object):
+class ClientArgs(object):
     """
     Class object for handling command line arguments.
     """
-    def __init__(self, mod_help=None):
+    def __init__(self):
 
         # Arguments parser / object
         self.parser  = None
         self._args   = None
-        
-        # Module help prompt
-        self._mhelp  = mod_help
         
         # Construct arguments
         self._construct()
@@ -131,13 +73,16 @@ class _CLIArgs(object):
         
         # Create a new argument parsing object and populate the arguments
         self.parser = argparse.ArgumentParser(description=self._return_help(), formatter_class=argparse.RawTextHelpFormatter)
-        self.parser.add_argument('module', help=self._mhelp)
+        self.parser.add_argument('module', help=MODULES.help_prompt())
         self.parser.add_argument('action', nargs='?', help="The action to perform against the endpoint", action='append')
         
-        # Load arguments
-        for arg in MAP_JSON.search('args'):
-            self.parser.add_argument(arg['short'], arg['long'], help=arg['help'], action=arg['action'])
-      
+        # Load client switches
+        self.parser.add_argument('-u', '--api-user', help='The API user to authenticate with if not set as the environment variable "LENSE_API_USER"', action='append')
+        self.parser.add_argument('-g', '--api-group', help='The API user group to authenticate with if not set as the environment variable "LENSE_API_GROUP"', action='append')
+        self.parser.add_argument('-k', '--api-key', help='The API key to authenticate with if not set as the environment variable "LENSE_API_KEY"', action='append')
+        self.parser.add_argument('-d', '--api-data', help='Optional data to pass during the API request, must be a valid JSON string', action='append')
+        self.parser.add_argument('-l', '--list', help='Show supported actions for a specified module', action='store_true')
+        
         # Parse CLI arguments
         sys.argv.pop(0)
         self._args = vars(self.parser.parse_args(sys.argv))
@@ -171,14 +116,7 @@ class CLIClient(object):
         self.connect = None
     
         # Arguments / modules objects
-        self.modules = _CLIModules()
-        self.args    = _CLIArgs(mod_help=self.modules.help_prompt)
-    
-        # Module attributes
-        self._mod_id = None
-        self._module = None
-        self._action = None
-        self._method = None
+        self.args    = ClientArgs()
     
         # API connection attributes
         self._get_api_env()
@@ -193,7 +131,11 @@ class CLIClient(object):
             pre()
         
         # Write the error message to stderr
-        sys.stderr.write('{0}\n'.format(msg))
+        if isinstance(msg, list):
+            for l in msg:
+                sys.stderr.write(l)
+        else:
+            sys.stderr.write('{0}\n'.format(msg))
         
         # Optional post-failure method
         if post and callable(post):
@@ -223,6 +165,11 @@ class CLIClient(object):
         Establish an API connection using the client libraries.
         """
 
+        # Look for any required arguments
+        for a in ['api_user', 'api_group', 'api_key']:
+            if not self.args.get(a):
+                self._die('Missing required argument "{0}"'.format(a))
+
         # Connection parameters
         params = {
             'user': self.args.get('api_user'), 
@@ -243,63 +190,46 @@ class CLIClient(object):
         List support actions for a module.
         """
         if self.args.get('list'):
-            print('\nSupported actions for module "{0}":\n'.format(module))
-            for k in self.modules.get(module):
-                print('> {0}'.format(k))
+            print('\nSupported actions for module "{0}":\n'.format(module.path))
+            for a in module.actions():
+                print('> {0}'.format(a))
             print('')
             sys.exit(0)
-    
-    def _get_module(self):
-        """
-        Get module attributes.
-        """
-        
-        # Module ID
-        self._mod_id = self.args.get('module')
-        
-        # Module attributes / action / method
-        self._module = self.modules.get(self._mod_id)
-        self._action = self.args.get('action')
-        self._method = self._module.get(self._action, None)
     
     def interface(self):
         """
         Handle any command line arguments.
         """
         
+        # Target module / action
+        module = MODULES.get(self.args.get('module'))
+        action = self.args.get('action')
+        
+        # Unsupported module
+        if not module:
+            self._die('\nUnsupported module "{0}"\n'.format(self.args.get('module')), pre=self.args.parser.print_help)
+        
         # Handle incoming requests
         try:
-            
-            # Unsupported module argument
-            if not self.args.get('module') in self.modules.list():
-                self._die('\nUnsupported module argument "{0}"\n'.format(self.args.get('module')), pre=self.args.parser.print_help)
-            
-            # Get module attributes
-            self._get_module()
             
             # Make an API connection
             self._connect_api()
             
-            # Look for any required arguments
-            for a in ['api_user', 'api_group', 'api_key']:
-                if not self.args.get(a):
-                    self._die('Missing required argument "{0}"'.format(a))
-            
             # If listing module actions
-            self._list_actions(self.args.get('module'))                
+            self._list_actions(module)                
             
-            # If no method found
-            if not self._method:
-                err = '\nUnsupported module action "{0}"\n'.format(self.args.get('action'))
-                err += 'Supported actions are: {0}\n'.format(json.dumps(', '.join(self._module)))
-                self._die(err, pre=self.args.parser.print_help)
+            # Unsupported module action
+            if not action in module.actions():
+                self._die([
+                    'Unsupported module action: {0}'.format(action),
+                    'Supported actions are: {0}'.format(', '.join(module.actions()))
+                ], pre=self.args.parser.print_help())
 
-            # Get the client module method
-            mod_object = getattr(self.client, self.args.get('module'))
-            mod_method = getattr(mod_object, self._action)
+            # Get the client request method
+            request = getattr(module, action)
             
             # If retrieving a token
-            if (self.args.get('module') == 'token') and (self._action == 'get'):
+            if (module.path == 'token') and (action == 'get'):
                 response = {
                     'code': 200,
                     'body': {'token': self.connect.get('token') }
@@ -307,7 +237,7 @@ class CLIClient(object):
             
             # Other request
             else:
-                response = mod_method(self.args.get('api_data', use_json=True))
+                response = request(self.args.get('api_data', use_json=True))
             
             # Response attributes
             r_code   = response.get('code')
@@ -318,7 +248,6 @@ class CLIClient(object):
     
         # Error in handling arguments
         except Exception as e:
-            import traceback
             traceback.print_exc()
             self._die(str(e))
             
