@@ -201,13 +201,13 @@ class CLIClient(object):
         Handle any command line arguments.
         """
         
-        # Target module / action
-        module = MODULES.get(self.args.get('module'))
-        action = self.args.get('action')
-        
         # Unsupported module
-        if not module:
+        if not MODULES.get(self.args.get('module')):
             self._die('\nUnsupported module "{0}"\n'.format(self.args.get('module')), pre=self.args.parser.print_help)
+        
+        # Target module / action
+        module = MODULES.get(self.args.get('module'))(self.client)
+        action = self.args.get('action')
         
         # Handle incoming requests
         try:

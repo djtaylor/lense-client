@@ -4,8 +4,11 @@ import requests
 import importlib
 
 # Lense Libraries
-from lense.common.vars import LENSE_CONFIG
+from lense.common import LenseCommon
 from lense.common.http import HEADER, MIME_TYPE, parse_response, error_response
+
+# Lense Common
+LENSE = LenseCommon('CLIENT')
 
 class APIBase(object):
     """
@@ -24,9 +27,6 @@ class APIBase(object):
         # Command line flag
         self.cli         = cli
 
-        # Construct the API map
-        self._construct_map()
-
     def _construct_headers(self):
         """
         Construct the request authorization headers.
@@ -38,31 +38,6 @@ class APIBase(object):
             HEADER.API_TOKEN:    self.API_TOKEN,
             HEADER.API_GROUP:    self.API_GROUP
         }
-
-    def _construct_map(self):
-        """
-        Method to construct the API request objects.
-        """
-
-        # Load the mapper JSON manifest
-        map_json = None
-        with open(LENSE_CONFIG.MAPPER, 'r') as f:
-            map_json = json.loads(f.read())
-
-        # Set the modules base
-        mod_base = map_json['base']
-        
-        # Load each module
-        for mod in map_json['modules']:
-            api_mod = '{0}.{1}'.format(mod_base, mod['module'])
-            
-            # Load the API endpoint handler
-            ep_mod   = importlib.import_module(api_mod)
-            ep_class = getattr(ep_mod, mod['class'])
-            ep_inst  = ep_class(self)
-            
-            # Set the internal attribute
-            setattr(self, mod['id'], ep_inst)
 
     def _return(self, response):
         """
