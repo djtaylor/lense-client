@@ -1,5 +1,5 @@
 etc/lense/client.conf etc/lense/
 etc/lense/client.default.conf etc/lense/
 usr/lib/python2.7/dist-packages/lense/client usr/lib/python2.7/dist-packages/lense/
-usr/share/lense usr/share/lense/
+usr/share/lense usr/share/
 usr/bin/lense usr/bin/
