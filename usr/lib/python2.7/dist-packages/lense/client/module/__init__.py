@@ -20,7 +20,7 @@ class ClientModuleCommon(object):
         m = inspect.stack()[0][3]
         l = []
         for a in dir(self):
-            if not a.startswith('_') and not a == me:
+            if not a.startswith('_') and not a == m:
                 l.append(a)
         return l
 

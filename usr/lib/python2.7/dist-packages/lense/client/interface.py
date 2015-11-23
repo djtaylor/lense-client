@@ -205,15 +205,15 @@ class CLIClient(object):
         if not MODULES.get(self.args.get('module')):
             self._die('\nUnsupported module "{0}"\n'.format(self.args.get('module')), pre=self.args.parser.print_help)
         
-        # Target module / action
-        module = MODULES.get(self.args.get('module'))(self.client)
-        action = self.args.get('action')
-        
         # Handle incoming requests
         try:
             
             # Make an API connection
             self._connect_api()
+            
+            # Target module / action
+            module = MODULES.get(self.args.get('module'))(self.client)
+            action = self.args.get('action')
             
             # If listing module actions
             self._list_actions(module)                
