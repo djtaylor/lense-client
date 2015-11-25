@@ -2,7 +2,7 @@
 
 Client libraries for interacting with the Lense platform.
 
-### Repository
+### Repository (Unavailable)
 
 To make the Lense packages available, you will need to add the following PPA and import the signing key:
 
