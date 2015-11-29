@@ -4,10 +4,7 @@ import inspect
 from os import path, walk
 
 # Lense Libraries
-from lense.common import LenseCommon
-
-# Lense Common
-LENSE = LenseCommon('CLIENT')
+from lense import import_class
 
 class ClientModuleCommon(object):
     """
@@ -37,16 +34,6 @@ class ClientModules(object):
         self._get_modules()
         self._get_modules_d()
         
-    def help_prompt(self):
-        """
-        Return the help prompt for all modules for argparse.
-        """
-        help_str = ''
-        for p,m in self._modules.iteritems():
-            help_str  += '{0:<10} {1}\n'.format(p, m.desc)
-        help_str += '\n'
-        return help_str
-        
     def _import_modules(self, mod_dir, mod_path):
         """
         Import module files in a given directory.
@@ -59,31 +46,54 @@ class ClientModules(object):
                     continue
         
                 # Import the module
-                mod_obj = LENSE.MODULE.IMPORT('{0}.{1}'.format(mod_path, LENSE.MODULE.NAME(file)))
-                mod_cls = getattr(mod_obj, 'ClientModule')
+                module = import_class('ClientModule', '{0}.{1}'.format(mod_path, LENSE.MODULE.name(file)), init=False)
                 
                 # Store the request module
-                self._modules[mod_cls.path] = mod_cls
+                self._modules[module.path] = module
         
     def _get_modules_d(self):
         """
         Load user drop-in request modules.
         """
-        self._import_modules(LENSE.MODULE.DROPIN.CLIENT[0], LENSE.MODULE.DROPIN.CLIENT[1])
+        
+        # Get the client dropin module attributes
+        client_dropins = LENSE.MODULE.dropin('client')
+        
+        # Import the modules
+        self._import_modules(client_dropins[0], client_dropins[1])
         
     def _get_modules(self):
         """
         Load built-in client request modules.
         """
-        self._import_modules(LENSE.MODULE.BUILTIN.CLIENT[0], LENSE.MODULE.BUILTIN.CLIENT[1])
         
-    def get(self, path):
+        # Get the client builtin module attributes
+        client_builtins = LENSE.MODULE.builtin('client')
+        
+        # Import the modules
+        self._import_modules(client_builtins[0], client_builtins[1])
+        
+    def help_prompt(self):
+        """
+        Return the help prompt for all modules for argparse.
+        """
+        help_str = ''
+        for p,m in self._modules.iteritems():
+            help_str  += '{0:<10} {1}\n'.format(p, m.desc)
+        help_str += '\n'
+        return help_str
+        
+    def getmod(self, path):
         """
         Return a module class by path.
+        
+        :param path: The request path
+        :type  path: str
+        :rtype: ClientModule
         """
         return self._modules.get(path, None)
         
-    def list(self):
+    def listmod(self):
         """
         Return a list of client modules.
         """

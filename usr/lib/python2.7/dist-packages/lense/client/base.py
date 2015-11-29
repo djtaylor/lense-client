@@ -1,14 +1,8 @@
-import sys
 import json
 import requests
-import importlib
 
 # Lense Libraries
-from lense.common import LenseCommon
 from lense.common.http import HEADER, MIME_TYPE, parse_response, error_response
-
-# Lense Common
-LENSE = LenseCommon('CLIENT')
 
 class APIBase(object):
     """

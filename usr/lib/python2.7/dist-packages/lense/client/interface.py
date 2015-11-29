@@ -1,28 +1,25 @@
 from __future__ import print_function
-import os
-import re
-import sys
 import json
-import argparse
-import importlib
-import traceback
 from copy import copy
+from os import environ
+from sys import exit, argv
+from traceback import print_exc
+from argparse import ArgumentParser, RawTextHelpFormatter
 
 # Lense Libraries
+from lense.common import init_project
 from lense.common.vars import CONFIG
 from lense.client.manager import APIConnect
 from lense.common.utils import format_action
 from lense.common.objects import JSONObject
 from lense.client.module import ClientModules
 
-# Client modules
-MODULES = ClientModules()
-
-class ClientArgs(object):
+class ClientArgs(ClientModules):
     """
     Class object for handling command line arguments.
     """
     def __init__(self):
+        super(ClientArgs, self).__init__()
 
         # Arguments parser / object
         self.parser  = None
@@ -68,8 +65,8 @@ class ClientArgs(object):
         """
         
         # Create a new argument parsing object and populate the arguments
-        self.parser = argparse.ArgumentParser(description=self._return_help(), formatter_class=argparse.RawTextHelpFormatter)
-        self.parser.add_argument('module', help=MODULES.help_prompt())
+        self.parser = ArgumentParser(description=self._return_help(), formatter_class=RawTextHelpFormatter)
+        self.parser.add_argument('module', help=self.help_prompt())
         self.parser.add_argument('action', nargs='?', help="The action to perform against the endpoint", action='append')
         
         # Load client switches
@@ -80,8 +77,8 @@ class ClientArgs(object):
         self.parser.add_argument('-l', '--list', help='Show supported actions for a specified module', action='store_true')
         
         # Parse CLI arguments
-        sys.argv.pop(0)
-        self._args = vars(self.parser.parse_args(sys.argv))
+        argv.pop(0)
+        self._args = vars(self.parser.parse_args(argv))
         
     def set(self, k, v):
         """
@@ -101,11 +98,12 @@ class ClientArgs(object):
         # Return the value
         return _val if not use_json else self._json_load_recursive(_val)
 
-class CLIClient(object):
+class CLIClient(ClientModules):
     """
     Command line interface for making API requests.
     """
     def __init__(self):
+        super(CLIClient, self).__init__()
     
         # API client and connection parameters
         self.client  = None
@@ -116,29 +114,6 @@ class CLIClient(object):
     
         # API connection attributes
         self._get_api_env()
-    
-    def _die(self, msg, code=None, pre=None, post=None):
-        """
-        Print on stderr and die with optional exit code.
-        """
-        
-        # Optional pre-failure method
-        if pre and callable(pre):
-            pre()
-        
-        # Write the error message to stderr
-        if isinstance(msg, list):
-            for l in msg:
-                sys.stderr.write(l)
-        else:
-            sys.stderr.write('{0}\n'.format(msg))
-        
-        # Optional post-failure method
-        if post and callable(post):
-            post()
-        
-        # Exit with the optional code
-        sys.exit(code if (code and isinstance(code, int)) else 1)
     
     def _get_api_env(self):
         """
@@ -153,8 +128,8 @@ class CLIClient(object):
             'api_key':   'LENSE_API_KEY',
             'api_group': 'LENSE_API_GROUP'
         }.iteritems():
-            if v in os.environ:
-                self.args.set(k, os.environ[v])
+            if v in environ:
+                self.args.set(k, environ[v])
     
     def _connect_api(self):
         """
@@ -164,7 +139,7 @@ class CLIClient(object):
         # Look for any required arguments
         for a in ['api_user', 'api_group', 'api_key']:
             if not self.args.get(a):
-                self._die('Missing required argument "{0}"'.format(a))
+                LENSE.die('Missing required argument "{0}"'.format(a))
 
         # Connection parameters
         params = {
@@ -179,7 +154,7 @@ class CLIClient(object):
     
         # If token retrieval/connection failed
         if not self.client:
-            self._die('HTTP {0}: {1}'.format(self.connect['code'], self.connect['body'].get('error', 'An unknown error occurred')))
+            LENSE.die('HTTP {0}: {1}'.format(self.connect['code'], self.connect['body'].get('error', 'An unknown error occurred')))
     
     def _list_actions(self, module):
         """
@@ -190,7 +165,7 @@ class CLIClient(object):
             for a in module.actions():
                 print('> {0}'.format(a))
             print('')
-            sys.exit(0)
+            exit(0)
     
     def interface(self):
         """
@@ -198,8 +173,8 @@ class CLIClient(object):
         """
         
         # Unsupported module
-        if not MODULES.get(self.args.get('module')):
-            self._die('\nUnsupported module "{0}"\n'.format(self.args.get('module')), pre=self.args.parser.print_help)
+        if not self.getmod(self.args.get('module')):
+            LENSE.die('\nUnsupported module "{0}"\n'.format(self.args.get('module')), pre=self.args.parser.print_help)
         
         # Handle incoming requests
         try:
@@ -208,7 +183,7 @@ class CLIClient(object):
             self._connect_api()
             
             # Target module / action
-            module = MODULES.get(self.args.get('module'))(self.client)
+            module = self.getmod(self.args.get('module'))(self.client)
             action = self.args.get('action')
             
             # If listing module actions
@@ -216,7 +191,7 @@ class CLIClient(object):
             
             # Unsupported module action
             if not action in module.actions():
-                self._die([
+                LENSE.die([
                     'Unsupported module action: {0}'.format(action),
                     'Supported actions are: {0}'.format(', '.join(module.actions()))
                 ], pre=self.args.parser.print_help())
@@ -244,11 +219,16 @@ class CLIClient(object):
     
         # Error in handling arguments
         except Exception as e:
-            traceback.print_exc()
-            self._die(str(e))
+            print_exc()
+            LENSE.die(str(e))
             
 def cli():
     """
     Entry point method for the 'lense' command line utility.
     """
+    
+    # Initialize the project
+    init_project('CLIENT')
+    
+    # Return the client interface
     CLIClient().interface()
