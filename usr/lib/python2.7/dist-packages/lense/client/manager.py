@@ -100,8 +100,6 @@ class APIConnect(object):
         # Get an API token
         self.token_rsp = parse_response(requests.get(auth_url, headers=self._get_token_headers()))
     
-        print self.token_rsp
-    
         # Load the response body
         self.token_rsp['body'] = json.loads(self.token_rsp['body'])
     
