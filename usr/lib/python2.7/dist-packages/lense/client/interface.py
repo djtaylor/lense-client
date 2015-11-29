@@ -9,15 +9,11 @@ import traceback
 from copy import copy
 
 # Lense Libraries
-from lense.common import LenseCommon
 from lense.common.vars import CONFIG
 from lense.client.manager import APIConnect
 from lense.common.utils import format_action
 from lense.common.objects import JSONObject
 from lense.client.module import ClientModules
-
-# Lense Common
-LENSE   = LenseCommon('CLIENT')
 
 # Client modules
 MODULES = ClientModules()
