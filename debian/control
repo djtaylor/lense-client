@@ -12,4 +12,4 @@ X-Python-Version: >= 2.7
 Package: lense-client
 Architecture: all
 Depends: lense-common (>= 0.1.1)
-Description: Client libraries for interacting with the Lense API platform.
+Description: Lense client libraries.
