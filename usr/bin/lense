@@ -1,4 +1,4 @@
 #!/usr/bin/python
-from lense.client.interface import cli
+from lense.client import cli
 
 cli()
