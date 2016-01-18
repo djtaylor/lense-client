@@ -6,4 +6,3 @@ def cli():
     """
     client = ClientHandler_CLI()
     client.run()
-    
