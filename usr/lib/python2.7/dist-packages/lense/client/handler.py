@@ -1,4 +1,5 @@
 import requests
+from json import loads as json_loads
 
 # Lense Libraries
 from lense.common import init_project
@@ -32,6 +33,14 @@ class _ClientHandler(object):
         # API server endpoint
         self.endpoint = '{0}://{1}:{2}'.format(LENSE.CONF.engine.proto, LENSE.CONF.engine.host, LENSE.CONF.engine.port)
 
+    def _validate(self):
+        """
+        Validate client attributes prior to running.
+        """
+        for k in ['user', 'group', 'path', 'method']:
+            if not hasattr(self, k) or not getattr(self, k, None):
+                raise Exception('Missing required argument: {0}'.format(k))
+
     def _get_token_headers(self):
         """
         Construct request authorization headers for a token request.
@@ -53,7 +62,7 @@ class _ClientHandler(object):
         """
         for k,v in kwargs.iteritems():
             if hasattr(self, k):
-                setattr(self, k, v)
+                setattr(self, k, v if not k == 'data' else json_loads(v))
 
     def _get_token(self):
         """
@@ -66,15 +75,15 @@ class _ClientHandler(object):
 
         # Get an API token
         token_url = '{0}/{1}'.format(self.endpoint, PATH.GET_TOKEN)
-        response  = requests.get(auth_url, headers=self._get_token_headers())
+        response  = requests.get(token_url, headers=self._get_token_headers())
     
         # If token request looks OK
         if response.status_code == 200:
             self.token = response.json()['data']
             return True
-        return False
+        print response.text
 
-    def request(self, path, method, data):
+    def request(self):
         """
         Make a request to the API server.
         
@@ -97,6 +106,7 @@ class _ClientHandler(object):
         """
         Common method for running the client handler.
         """
+        self._validate()
         
         # Retrieve a token
         self._get_token()
@@ -109,7 +119,7 @@ class ClientHandler_CLI(_ClientHandler):
     Class for handling command line requests to the Lense client libraries.
     """
     def __init__(self):
-        super(self, ClientHandler_CLI).__init__('cli')
+        super(ClientHandler_CLI, self).__init__()
 
         # Load arguments
         args = ClientArgs_CLI()
@@ -120,7 +130,7 @@ class ClientHandler_Mod(_ClientHandler):
     Class for handling module requests to the Lense client libraries.
     """
     def __init__(self, **kwargs):
-        super(self, ClientHandler_Mod).__init__('mod')
+        super(ClientHandler_Mod, self).__init__()
         
         # Load arguments
         self.load_args(**kwargs)
