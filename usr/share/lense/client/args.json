@@ -1,0 +1,51 @@
+
+{
+	"commands": [
+		{
+			"key": "request",
+			"help": "Make a request to the Lense API engine"
+		},
+		{
+			"key": "cache",
+			"help": "Dummy command"
+		}
+	],
+	"options": [
+		{
+			"short": "p",
+			"long": "path",
+			"help": "The request path relative to the API server",
+			"action": "store"
+		},
+		{
+			"short": "m",
+			"long": "method",
+			"help": "The request method to use",
+			"action": "store"
+		},
+		{
+			"short": "d",
+			"long": "data",
+			"help": "Any additional data to pass with the API request",
+			"action": "store"
+		},
+		{
+			"short": "u",
+			"long": "user",
+			"help": "The API user to authenticate with if not set as the environment variable 'LENSE_API_USER'",
+			"action": "store"
+		},
+		{
+			"short": "g",
+			"long": "group",
+			"help": "The API user group to authenticate with if not set as the environment variable 'LENSE_API_GROUP'",
+			"action": "store"
+		},
+		{
+			"short": "k",
+			"long": "key",
+			"help": "The API key to authenticate with if not set as the environment variable 'LENSE_API_KEY'",
+			"action": "store"
+		}
+	]
+}
