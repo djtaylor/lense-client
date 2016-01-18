@@ -23,11 +23,9 @@ class ClientArg_Commands(object):
         """
         Return the commands help prompt
         """
-        
-        # Construct the help string
         commands_str = ''
         for cmd in self.commands:
-            commands_str += "> {0} {1}\n".format(cmd['key'], cmd['help'])
+            commands_str += "> {0}: {1}\n".format(cmd['key'], cmd['help'])
         return ("Available Commands:\n{0}".format(commands_str))
 
 class ClientArg_Option(object):
@@ -35,6 +33,16 @@ class ClientArg_Option(object):
     Wrapper class for storing option attributes.
     """
     def __init__(self, short, long, help, action='store'):
+        """
+        :param  short: Option short key
+        :type   short: str
+        :param   long: Option long key
+        :type    long: str
+        :param   help: Option help prompt
+        :type    help: str
+        :param action: Argparse action
+        :type  action: str
+        """
         self.short  = '-{0}'.format(short)
         self.long   = '--{0}'.format(long)
         self.help   = help
@@ -45,7 +53,7 @@ class ClientArgsInterface(object):
     Load client arguments from the manifest.
     """
     def __init__(self):
-        self.manifest = json_loads(open('/usr/share/lense/client/args.json', 'r').read())
+        self.manifest = self._load_manifest()
 
         # Commands / options
         self.commands = None
@@ -53,6 +61,18 @@ class ClientArgsInterface(object):
 
         # Construct client arguments
         self._construct()
+
+    def _load_manifest(self):
+        """
+        Load the arguments manifest.
+        """
+        manifest_file = '/usr/share/lense/client/args.json'
+
+        # Try to load the manifest
+        try:
+            return json_loads(open(manifest_file, 'r').read())
+        except Exception as e:
+            LENSE.die('Failed to load arguments manifest: {0}'.format(e.message))
 
     def _construct(self):
         """
@@ -71,10 +91,10 @@ class ClientArgs_CLI(object):
     Construct arguments passed to the Lense client via the command line.
     """
     def __init__(self):
-        self._args = {}
     
-        # Arguments interface
+        # Arguments interface / container
         self.interface = ClientArgsInterface()
+        self.container = {}
     
         # Construct command line arguments
         self._construct()
@@ -89,25 +109,25 @@ class ClientArgs_CLI(object):
             'group': 'LENSE_API_GROUP'
         }.iteritems():
             if v in environ:
-                self.args.set(k, environ[v])
+                self.set(k, environ[v])
     
     def list(self):
         """
         Return a list of argument keys.
         """
-        return self._args.keys()
+        return self.container.keys()
     
     def dict(self):
         """
         Return a dictionary of argument key/values.
         """
-        return self._args
+        return self.container
     
     def set(self, k, v):
         """
         Set a new argument or change the value.
         """
-        self._args[k] = v
+        self.container[k] = v
         
     def get(self, k, default=None, use_json=False):
         """
@@ -115,7 +135,7 @@ class ClientArgs_CLI(object):
         """
         
         # Get the value from argparse
-        _raw = self._args.get(k)
+        _raw = self.container.get(k)
         _val = (_raw if _raw else default) if not isinstance(_raw, list) else (_raw[0] if _raw[0] else default)
         
         # Return the value
@@ -125,10 +145,6 @@ class ClientArgs_CLI(object):
          return ("Lense API Client\n\n"
                  "A utility designed to handle interactions with the Lense API client manager.\n"
                  "Supports most of the API endpoints available.\n")
-    
-    def _command_help(self):
-        return ("Available Commands:\n"
-                "> request: Make a request to the Lense API engine\n")
     
     def _construct(self):
         """
@@ -145,4 +161,16 @@ class ClientArgs_CLI(object):
             
         # Parse CLI arguments
         argv.pop(0)
-        self._args = vars(self.parser.parse_args(argv))
+        self.container = vars(self.parser.parse_args(argv))
+        
+        # Scan environment variables
+        self._getenv()
+        
+    @classmethod
+    def parse(cls):
+        """
+        Shortcut method for parsing CLI arguments and returning a dictionary.
+        This assumes the calling object does not need an instance of this
+        class, just arguments as a dictionary.
+        """
+        return cls().dict()
