@@ -17,21 +17,35 @@ class _ClientHandler(object):
         """
         
         # User attributes
-        self.user   = None
-        self.group  = None
-        self.key    = None
-        self.token  = None
+        self.user     = None
+        self.group    = None
+        self.key      = None
+        self.token    = None
     
         # Request attributes
-        self.path   = None
-        self.method = None
-        self.data   = None
+        self.path     = None
+        self.method   = None
+        self.data     = None
+    
+        # Server endpoint
+        self.endpoint = None
     
         # Initialize commons
         init_project('CLIENT')
 
+        # Bootstrap methods
+        self._bootstrap()
+        
+    def _bootstrap(self):
+        """
+        Run bootstrap after commons has been initialized.
+        """
+        host  = LENSE.CONF.engine.host
+        proto = LENSE.CONF.engine.proto
+        port  = LENSE.CONF.engine.port
+        
         # API server endpoint
-        self.endpoint = '{0}://{1}:{2}'.format(LENSE.CONF.engine.proto, LENSE.CONF.engine.host, LENSE.CONF.engine.port)
+        self.endpoint = '{0}://{1}:{2}'.format(proto, host, port)
 
     def _validate(self):
         """
@@ -39,7 +53,11 @@ class _ClientHandler(object):
         """
         for k in ['user', 'group', 'path', 'method']:
             if not hasattr(self, k) or not getattr(self, k, None):
-                raise Exception('Missing required argument: {0}'.format(k))
+                LENSE.die('Missing required argument: {0}'.format(k))
+
+        # Must supply a key or token
+        if not self.key and not self.token:
+            LENSE.die('Must supply either a key or token')
 
     def _get_token_headers(self):
         """
@@ -52,17 +70,6 @@ class _ClientHandler(object):
             HEADER.API_KEY: self.key,
             HEADER.API_GROUP: self.group 
         }
-
-    def load_args(self, **kwargs):
-        """
-        Load attributes from child object.
-        
-        :param attrs: Argument attributes to load
-        :type  attrs: dict
-        """
-        for k,v in kwargs.iteritems():
-            if hasattr(self, k):
-                setattr(self, k, v if not k == 'data' else json_loads(v))
 
     def _get_token(self):
         """
@@ -82,6 +89,17 @@ class _ClientHandler(object):
             self.token = response.json()['data']
             return True
         print response.text
+
+    def load_args(self, **kwargs):
+        """
+        Load attributes from child object.
+        
+        :param attrs: Argument attributes to load
+        :type  attrs: dict
+        """
+        for k,v in kwargs.iteritems():
+            if hasattr(self, k):
+                setattr(self, k, v if not k == 'data' else json_loads(v))
 
     def request(self):
         """
@@ -122,8 +140,7 @@ class ClientHandler_CLI(_ClientHandler):
         super(ClientHandler_CLI, self).__init__()
 
         # Load arguments
-        args = ClientArgs_CLI()
-        self.load_args(**args.dict())
+        self.load_args(**ClientArgs_CLI.parse())
 
 class ClientHandler_Mod(_ClientHandler):
     """
