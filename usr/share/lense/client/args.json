@@ -22,7 +22,8 @@
 			"long": "method",
 			"help": "The request method to use",
 			"action": "store",
-			"required": true
+			"required": true,
+			"values": ["GET", "POST", "PUT", "DELETE"]
 		},
 		{
 			"short": "d",

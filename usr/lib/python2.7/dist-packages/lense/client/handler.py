@@ -1,4 +1,6 @@
 import requests
+from sys import exit
+from os import environ
 from json import loads as json_loads
 
 # Lense Libraries
@@ -11,8 +13,11 @@ class _ClientHandler(ClientParams):
     """
     Base class for both CLI and module client interfaces.
     """
-    def __init__(self):
+    def __init__(self, cli=False):
         super(_ClientHandler, self).__init__()
+        
+        # CLI flag
+        self.cli      = cli
         
         # User attributes
         self.user     = None
@@ -57,6 +62,14 @@ class _ClientHandler(ClientParams):
             HEADER.API_GROUP: self.group 
         }
 
+    def _show_http_error(self, code, error):
+        """
+        Show an error response.
+        """
+        if self.cli:
+            LENSE.FEEDBACK.error('HTTP {0}: {1}'.format(code, error))
+            exit(code)
+
     def _get_token(self):
         """
         Attempt to retrieve an API token for the user.
@@ -72,9 +85,13 @@ class _ClientHandler(ClientParams):
     
         # If token request looks OK
         if response.status_code == 200:
-            self.token = response.json()['data']
+            
+            # Store and cache the token
+            self.token = response.json()['data']['token']
             return True
-        print response.text
+        
+        # Token retrieval failed
+        self._show_http_error(response.status_code, response.json()['error'])
 
     def load_args(self, **kwargs):
         """
@@ -89,14 +106,19 @@ class _ClientHandler(ClientParams):
             key      = arg['long']
             required = arg.get('required', False)
             value    = kwargs.get(key, None)
-            use_json = kwargs.get('json', False)
+            use_json = arg.get('json', False)
+            values   = arg.get('values', [])
             
             # Make sure required arguments are set
             if required and not value:
                 LENSE.die('Missing required argument: {0}'.format(key))
         
+            # If the argument supports only certain values
+            if values and not value in values:
+                LENSE.die('Unsupported value "{0}" for argument "{1}", options are: {2}'.format(value, key, ', '.join(values)))
+        
             # Set the argument attribute
-            setattr(self, key, value if not use_json else json_loads(value))
+            setattr(self, key, value if not use_json else (None if not value else json_loads(value)))
 
     def request(self):
         """
@@ -121,7 +143,6 @@ class _ClientHandler(ClientParams):
         """
         Common method for running the client handler.
         """
-        self._validate()
         
         # Retrieve a token
         self._get_token()
@@ -134,7 +155,7 @@ class ClientHandler_CLI(_ClientHandler):
     Class for handling command line requests to the Lense client libraries.
     """
     def __init__(self):
-        super(ClientHandler_CLI, self).__init__()
+        super(ClientHandler_CLI, self).__init__(cli=True)
 
         # Load arguments
         self.load_args(**ClientArgs_CLI.parse())
