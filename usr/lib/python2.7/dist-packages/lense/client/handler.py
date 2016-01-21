@@ -4,17 +4,15 @@ from json import loads as json_loads
 # Lense Libraries
 from lense.common import init_project
 from lense.client.args import ClientArgs_CLI
+from lense.client.params import ClientParams
 from lense.common.http import HEADER, MIME_TYPE, PATH
 
-class _ClientHandler(object):
+class _ClientHandler(ClientParams):
     """
     Base class for both CLI and module client interfaces.
     """
     def __init__(self):
-        """
-        :param client_type: cli or mod
-        :type  client_type: str
-        """
+        super(_ClientHandler, self).__init__()
         
         # User attributes
         self.user     = None
@@ -46,18 +44,6 @@ class _ClientHandler(object):
         
         # API server endpoint
         self.endpoint = '{0}://{1}:{2}'.format(proto, host, port)
-
-    def _validate(self):
-        """
-        Validate client attributes prior to running.
-        """
-        for k in ['user', 'group', 'path', 'method']:
-            if not hasattr(self, k) or not getattr(self, k, None):
-                LENSE.die('Missing required argument: {0}'.format(k))
-
-        # Must supply a key or token
-        if not self.key and not self.token:
-            LENSE.die('Must supply either a key or token')
 
     def _get_token_headers(self):
         """
@@ -97,9 +83,20 @@ class _ClientHandler(object):
         :param attrs: Argument attributes to load
         :type  attrs: dict
         """
-        for k,v in kwargs.iteritems():
-            if hasattr(self, k):
-                setattr(self, k, v if not k == 'data' else json_loads(v))
+        
+        # Make sure required arguments are present
+        for arg in self.manifest['options']:
+            key      = arg['long']
+            required = arg.get('required', False)
+            value    = kwargs.get(key, None)
+            use_json = kwargs.get('json', False)
+            
+            # Make sure required arguments are set
+            if required and not value:
+                LENSE.die('Missing required argument: {0}'.format(key))
+        
+            # Set the argument attribute
+            setattr(self, key, value if not use_json else json_loads(value))
 
     def request(self):
         """

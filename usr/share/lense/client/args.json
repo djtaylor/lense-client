@@ -14,37 +14,43 @@
 			"short": "p",
 			"long": "path",
 			"help": "The request path relative to the API server",
-			"action": "store"
+			"action": "store",
+			"required": true
 		},
 		{
 			"short": "m",
 			"long": "method",
 			"help": "The request method to use",
-			"action": "store"
+			"action": "store",
+			"required": true
 		},
 		{
 			"short": "d",
 			"long": "data",
 			"help": "Any additional data to pass with the API request",
-			"action": "store"
+			"action": "store",
+			"json": true
 		},
 		{
 			"short": "u",
 			"long": "user",
 			"help": "The API user to authenticate with if not set as the environment variable 'LENSE_API_USER'",
-			"action": "store"
+			"action": "store",
+			"required": true
 		},
 		{
 			"short": "g",
 			"long": "group",
 			"help": "The API user group to authenticate with if not set as the environment variable 'LENSE_API_GROUP'",
-			"action": "store"
+			"action": "store",
+			"required": true
 		},
 		{
 			"short": "k",
 			"long": "key",
 			"help": "The API key to authenticate with if not set as the environment variable 'LENSE_API_KEY'",
-			"action": "store"
+			"action": "store",
+			"required": true
 		}
 	]
 }

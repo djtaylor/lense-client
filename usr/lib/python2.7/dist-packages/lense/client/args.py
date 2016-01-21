@@ -3,6 +3,9 @@ from os import environ
 from json import loads as json_loads
 from argparse import ArgumentParser, RawTextHelpFormatter
 
+# Lense Libraries
+from lense.client.params import ClientParams
+
 class ClientArg_Commands(object):
     """
     Wrapper class for storing command attributes.
@@ -32,28 +35,38 @@ class ClientArg_Option(object):
     """
     Wrapper class for storing option attributes.
     """
-    def __init__(self, short, long, help, action='store'):
+    def __init__(self, **opts):
         """
-        :param  short: Option short key
-        :type   short: str
-        :param   long: Option long key
-        :type    long: str
-        :param   help: Option help prompt
-        :type    help: str
-        :param action: Argparse action
-        :type  action: str
+        :param    short: Option short key
+        :type     short: str
+        :param     long: Option long key
+        :type      long: str
+        :param     help: Option help prompt
+        :type      help: str
+        :param   action: Argparse action
+        :type    action: str
+        :param required: Is this option required or not
+        :type  required: bool
+        :param     json: Convert option value to JSON
+        :type      json: bool
         """
-        self.short  = '-{0}'.format(short)
-        self.long   = '--{0}'.format(long)
-        self.help   = help
-        self.action = action
+        
+        # Argparse options
+        self.short    = '-{0}'.format(opts['short'])
+        self.long     = '--{0}'.format(opts['long'])
+        self.help     = opts['help']
+        self.action   = opts['action']
 
-class ClientArgsInterface(object):
+        # Validation options
+        self.required = opts.get('required', False)
+        self.json     = opts.get('json', False)
+
+class ClientArgsInterface(ClientParams):
     """
     Load client arguments from the manifest.
     """
     def __init__(self):
-        self.manifest = self._load_manifest()
+        super(ClientArgsInterface, self).__init__()
 
         # Commands / options
         self.commands = None
@@ -61,18 +74,6 @@ class ClientArgsInterface(object):
 
         # Construct client arguments
         self._construct()
-
-    def _load_manifest(self):
-        """
-        Load the arguments manifest.
-        """
-        manifest_file = '/usr/share/lense/client/args.json'
-
-        # Try to load the manifest
-        try:
-            return json_loads(open(manifest_file, 'r').read())
-        except Exception as e:
-            LENSE.die('Failed to load arguments manifest: {0}'.format(e.message))
 
     def _construct(self):
         """
@@ -83,8 +84,8 @@ class ClientArgsInterface(object):
         self.commands = ClientArg_Commands(self.manifest['commands'])
         
         # Options
-        for a in self.manifest['options']:
-            self.options.append(ClientArg_Option(short=a['short'], long=a['long'], help=a['help'], action=a['action']))
+        for opts in self.manifest['options']:
+            self.options.append(ClientArg_Option(**opts))
 
 class ClientArgs_CLI(object):
     """
