@@ -1,23 +1,23 @@
 import json
 import requests
 from sys import exit
-from os import environ
+from os import environ, path, unlink
 
 # Lense Libraries
-from lense.common import init_project
 from lense.client.args import ClientArgs_CLI
 from lense.client.common import ClientCommon
 from lense.common.http import HEADER, MIME_TYPE, PATH
+from lense.client.rest import RESTInterface
 
 class ClientHandler(ClientCommon):
     """
     Base class for both CLI and module client interfaces.
     """
-    def __init__(self, cli=False):
+    def __init__(self):
         super(ClientHandler, self).__init__()
         
-        # CLI flag
-        self.cli      = cli
+        # Client command
+        self.command  = None
         
         # User attributes
         self.user     = None
@@ -29,71 +29,15 @@ class ClientHandler(ClientCommon):
         self.path     = None
         self.method   = None
         self.data     = None
-
-    def _get_headers(self, token=None, key=None):
-        """
-        Construct request headers.
-        """
-        headers = {
-            HEADER.CONTENT_TYPE: MIME_TYPE.APPLICATION.JSON,
-            HEADER.ACCEPT: MIME_TYPE.TEXT.PLAIN,
-            HEADER.API_USER: self.user,
-            HEADER.API_GROUP: self.group 
-        }
         
-        # Token
-        if token:
-            headers[HEADER.API_TOKEN] = token
-        
-        # Key
-        if key:
-            headers[HEADER.API_KEY] = key
+        # REST interface
+        self.rest     = None
 
-        # Return headers
-        return headers
-
-    def _http_response(self, content):
+    def _bootstrap(self):
         """
-        Show an HTTP response.
+        Bootstrap methods after loading arguments.
         """
-        if self.cli:
-            try:
-                content = '\n\n{0}\n'.format(json.dumps(content, indent=2))
-            except:
-                pass
-            LENSE.FEEDBACK.success('HTTP 200: {0}'.format(content))
-            exit(0)
-
-    def _http_error(self, code, error):
-        """
-        Show an error response.
-        """
-        if self.cli:
-            LENSE.FEEDBACK.error('HTTP {0}: {1}'.format(code, error))
-            exit(code)
-
-    def _get_token(self):
-        """
-        Attempt to retrieve an API token for the user.
-        """
-        
-        # Token already supplied
-        if self.token:
-            return True
-
-        # Get an API token
-        token_url = '{0}/{1}'.format(self.endpoint, PATH.GET_TOKEN)
-        response  = requests.get(token_url, headers=self._get_headers(key=self.key))
-    
-        # If token request looks OK
-        if response.status_code == 200:
-            
-            # Store and cache the token
-            self.token = response.json()['data']['token']
-            return True
-        
-        # Token retrieval failed
-        self._http_error(response.status_code, response.json()['error'])
+        self.rest = RESTInterface(self.user, self.group, self.key)
 
     def load_args(self, **kwargs):
         """
@@ -103,6 +47,9 @@ class ClientHandler(ClientCommon):
         :type  attrs: dict
         """
         
+        # Store the command
+        self.command = kwargs.get('command')
+        
         # Make sure required arguments are present
         for arg in self.manifest['options']:
             key      = arg['long']
@@ -110,62 +57,84 @@ class ClientHandler(ClientCommon):
             value    = kwargs.get(key, None)
             use_json = arg.get('json', False)
             values   = arg.get('values', [])
+            commands = arg.get('commands', [])
             
-            # Make sure required arguments are set
-            if required and not value:
-                LENSE.die('Missing required argument: {0}'.format(key))
-        
-            # If the argument supports only certain values
-            if values and not value in values:
-                LENSE.die('Unsupported value "{0}" for argument "{1}", options are: {2}'.format(value, key, ', '.join(values)))
+            # Do the arguments apply to the current command
+            if self.command in commands:
+            
+                # Make sure required arguments are set
+                if required and not value:
+                    LENSE.die('Missing required argument: {0}'.format(key))
+            
+                # If the argument supports only certain values
+                if values and not value in values:
+                    LENSE.die('Unsupported value "{0}" for argument "{1}", options are: {2}'.format(value, key, ', '.join(values)))
         
             # Set the argument attribute
             setattr(self, key, value if not use_json else (None if not value else json.loads(value)))
 
-    def request(self):
+        # Bootstrap after loading arguments
+        self._bootstrap()
+
+    def request(self, **kwargs):
         """
         Make a request to the API server.
-        
-        :param   path: The request path
-        :type    path: str
-        :param method: The request method
-        :type  method: str
-        :param   data: Additional request data
-        :type    data: dict
         """
-        request_url    = '{0}/{1}'.format(self.endpoint, self.path)
-        request_method = getattr(requests, self.method.lower())
+        path   = kwargs.get('path', self.path)
+        method = kwargs.get('method', self.method)
+        data   = kwargs.get('data', self.data)
         
-        # Make the request
-        response = request_method(request_url, headers=self._get_headers(token=self.token), params=self.data)
-        
-        # Request OK
-        if response.status_code == 200:
-            return self._http_response(response.json()['data'])
-        
-        # Request failed
-        self._http_error(response.status_code, response.json()['error'])
+        # Make the API request
+        return self.rest.request(path, method, data)
+
+    def noop(self):
+        return True
 
     def run(self):
         """
         Common method for running the client handler.
         """
+        commands = {
+            'request': self.request,
+            'cache': self.noop,
+            'support': self.noop
+        }
         
-        # Retrieve a token
-        self._get_token()
+        # Run the command
+        if self.command in commands:
+            return commands[self.command]()
         
-        # Return the request response
-        return self.request()
+        # Unsupported command
+        LENSE.die("Unsupported command: {0}".format(self.command))
 
 class ClientHandler_CLI(ClientHandler):
     """
     Class for handling command line requests to the Lense client libraries.
     """
     def __init__(self):
-        super(ClientHandler_CLI, self).__init__(cli=True)
+        init_project('CLIENT')
+        super(ClientHandler_CLI, self).__init__()
 
         # Load arguments
         self.load_args(**ClientArgs_CLI.parse())
+
+    def print_response(self, content, code=200):
+        """
+        Print a successfull HTTP response.
+        """
+        try:
+            content = '\n\n{0}\n'.format(json.dumps(content, indent=2))
+        except:
+            pass
+        LENSE.FEEDBACK.success('HTTP {0}: {1}'.format(code, content))
+        exit(0)
+
+    def print_error_and_die(self, message, code):
+        """
+        Print a ClientError and quit the program.
+        """
+        LENSE.FEEDBACK.error('HTTP {0}: {1}'.format(code, message))
+        exit(code)
 
 class ClientHandler_Mod(ClientHandler):
     """

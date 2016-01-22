@@ -4,7 +4,7 @@ from json import loads as json_loads
 from argparse import ArgumentParser, RawTextHelpFormatter
 
 # Lense Libraries
-from lense.client.params import ClientParams
+from lense.client.common import ClientCommon
 
 class ClientArg_Commands(object):
     """
@@ -61,7 +61,7 @@ class ClientArg_Option(object):
         self.required = opts.get('required', False)
         self.json     = opts.get('json', False)
 
-class ClientArgsInterface(ClientParams):
+class ClientArgsInterface(ClientCommon):
     """
     Load client arguments from the manifest.
     """

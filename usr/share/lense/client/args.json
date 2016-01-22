@@ -6,7 +6,11 @@
 		},
 		{
 			"key": "cache",
-			"help": "Dummy command"
+			"help": "Generate or update the server support cache"
+		},
+		{
+			"key": "support",
+			"help": "Show supported server capabilities"
 		}
 	],
 	"options": [
@@ -15,7 +19,8 @@
 			"long": "path",
 			"help": "The request path relative to the API server",
 			"action": "store",
-			"required": true
+			"required": true,
+			"commands": ["request"]
 		},
 		{
 			"short": "m",
@@ -23,35 +28,40 @@
 			"help": "The request method to use",
 			"action": "store",
 			"required": true,
-			"values": ["GET", "POST", "PUT", "DELETE"]
+			"values": ["GET", "POST", "PUT", "DELETE"],
+			"commands": ["request"]
 		},
 		{
 			"short": "d",
 			"long": "data",
 			"help": "Any additional data to pass with the API request",
 			"action": "store",
-			"json": true
+			"json": true,
+			"commands": ["request"]
 		},
 		{
 			"short": "u",
 			"long": "user",
 			"help": "The API user to authenticate with if not set as the environment variable 'LENSE_API_USER'",
 			"action": "store",
-			"required": true
+			"required": true,
+			"commands": ["request"]
 		},
 		{
 			"short": "g",
 			"long": "group",
 			"help": "The API user group to authenticate with if not set as the environment variable 'LENSE_API_GROUP'",
 			"action": "store",
-			"required": true
+			"required": true,
+			"commands": ["request"]
 		},
 		{
 			"short": "k",
 			"long": "key",
 			"help": "The API key to authenticate with if not set as the environment variable 'LENSE_API_KEY'",
 			"action": "store",
-			"required": true
+			"required": true,
+			"commands": ["request"]
 		}
 	]
 }
