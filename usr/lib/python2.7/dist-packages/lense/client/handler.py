@@ -1,7 +1,7 @@
+import json
 import requests
 from sys import exit
 from os import environ
-from json import loads as json_loads
 
 # Lense Libraries
 from lense.common import init_project
@@ -50,19 +50,41 @@ class _ClientHandler(ClientParams):
         # API server endpoint
         self.endpoint = '{0}://{1}:{2}'.format(proto, host, port)
 
-    def _get_token_headers(self):
+    def _get_headers(self, token=None, key=None):
         """
-        Construct request authorization headers for a token request.
+        Construct request headers.
         """
-        return {
+        headers = {
             HEADER.CONTENT_TYPE: MIME_TYPE.APPLICATION.JSON,
             HEADER.ACCEPT: MIME_TYPE.TEXT.PLAIN,
             HEADER.API_USER: self.user,
-            HEADER.API_KEY: self.key,
             HEADER.API_GROUP: self.group 
         }
+        
+        # Token
+        if token:
+            headers[HEADER.API_TOKEN] = token
+        
+        # Key
+        if key:
+            headers[HEADER.API_KEY] = key
 
-    def _show_http_error(self, code, error):
+        # Return headers
+        return headers
+
+    def _http_response(self, content):
+        """
+        Show an HTTP response.
+        """
+        if self.cli:
+            try:
+                content = '\n\n{0}\n'.format(json.dumps(content, indent=2))
+            except:
+                pass
+            LENSE.FEEDBACK.success('HTTP 200: {0}'.format(content))
+            exit(0)
+
+    def _http_error(self, code, error):
         """
         Show an error response.
         """
@@ -81,7 +103,7 @@ class _ClientHandler(ClientParams):
 
         # Get an API token
         token_url = '{0}/{1}'.format(self.endpoint, PATH.GET_TOKEN)
-        response  = requests.get(token_url, headers=self._get_token_headers())
+        response  = requests.get(token_url, headers=self._get_headers(key=self.key))
     
         # If token request looks OK
         if response.status_code == 200:
@@ -91,7 +113,7 @@ class _ClientHandler(ClientParams):
             return True
         
         # Token retrieval failed
-        self._show_http_error(response.status_code, response.json()['error'])
+        self._http_error(response.status_code, response.json()['error'])
 
     def load_args(self, **kwargs):
         """
@@ -118,7 +140,7 @@ class _ClientHandler(ClientParams):
                 LENSE.die('Unsupported value "{0}" for argument "{1}", options are: {2}'.format(value, key, ', '.join(values)))
         
             # Set the argument attribute
-            setattr(self, key, value if not use_json else (None if not value else json_loads(value)))
+            setattr(self, key, value if not use_json else (None if not value else json.loads(value)))
 
     def request(self):
         """
@@ -131,13 +153,18 @@ class _ClientHandler(ClientParams):
         :param   data: Additional request data
         :type    data: dict
         """
-        print 'User: {0}'.format(self.user)
-        print 'Group: {0}'.format(self.group)
-        print 'Key: {0}'.format(self.key)
-        print 'Token: {0}'.format(self.token)
-        print 'Path: {0}'.format(self.path)
-        print 'Method: {0}'.format(self.method)
-        print 'Data: {0}'.format(self.data)
+        request_url    = '{0}/{1}'.format(self.endpoint, self.path)
+        request_method = getattr(requests, self.method.lower())
+        
+        # Make the request
+        response = request_method(request_url, headers=self._get_headers(token=self.token), params=self.data)
+        
+        # Request OK
+        if response.status_code == 200:
+            return self._http_response(response.json()['data'])
+        
+        # Request failed
+        self._http_error(response.status_code, response.json()['error'])
 
     def run(self):
         """
