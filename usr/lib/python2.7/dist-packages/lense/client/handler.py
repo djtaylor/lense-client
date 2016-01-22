@@ -6,15 +6,15 @@ from os import environ
 # Lense Libraries
 from lense.common import init_project
 from lense.client.args import ClientArgs_CLI
-from lense.client.params import ClientParams
+from lense.client.common import ClientCommon
 from lense.common.http import HEADER, MIME_TYPE, PATH
 
-class _ClientHandler(ClientParams):
+class ClientHandler(ClientCommon):
     """
     Base class for both CLI and module client interfaces.
     """
     def __init__(self, cli=False):
-        super(_ClientHandler, self).__init__()
+        super(ClientHandler, self).__init__()
         
         # CLI flag
         self.cli      = cli
@@ -29,26 +29,6 @@ class _ClientHandler(ClientParams):
         self.path     = None
         self.method   = None
         self.data     = None
-    
-        # Server endpoint
-        self.endpoint = None
-    
-        # Initialize commons
-        init_project('CLIENT')
-
-        # Bootstrap methods
-        self._bootstrap()
-        
-    def _bootstrap(self):
-        """
-        Run bootstrap after commons has been initialized.
-        """
-        host  = LENSE.CONF.engine.host
-        proto = LENSE.CONF.engine.proto
-        port  = LENSE.CONF.engine.port
-        
-        # API server endpoint
-        self.endpoint = '{0}://{1}:{2}'.format(proto, host, port)
 
     def _get_headers(self, token=None, key=None):
         """
@@ -177,7 +157,7 @@ class _ClientHandler(ClientParams):
         # Return the request response
         return self.request()
 
-class ClientHandler_CLI(_ClientHandler):
+class ClientHandler_CLI(ClientHandler):
     """
     Class for handling command line requests to the Lense client libraries.
     """
@@ -187,7 +167,7 @@ class ClientHandler_CLI(_ClientHandler):
         # Load arguments
         self.load_args(**ClientArgs_CLI.parse())
 
-class ClientHandler_Mod(_ClientHandler):
+class ClientHandler_Mod(ClientHandler):
     """
     Class for handling module requests to the Lense client libraries.
     """
