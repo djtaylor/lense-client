@@ -7,7 +7,7 @@ from os import environ, path, unlink
 from lense.common import init_project
 from lense.client.args import ClientArgs_CLI
 from lense.client.common import ClientCommon
-from lense.common.exception import ClientError
+from lense.common.exceptions import ClientError
 from lense.common.http import HEADER, MIME_TYPE, PATH
 from lense.client.rest import RESTInterface
 
@@ -41,15 +41,10 @@ class ClientHandler(ClientCommon):
         """
         self.rest = RESTInterface(self.user, self.group, self.key)
 
-    def _load_data(self):
-        """
-        Load request data if supplied.
-        """
-        if self.kwargs.get('data', False):
-            return json.loads(self.kwargs.get('data'))
-        return None
+    def _load_data(self, data):
+        return json.loads(data) if data else None
 
-    def print_response(self, content, code=200):
+    def http_response(self, content, code=200):
         """
         Print a successfull HTTP response.
         """
@@ -60,12 +55,19 @@ class ClientHandler(ClientCommon):
         LENSE.FEEDBACK.success('HTTP {0}: {1}'.format(code, content))
         exit(0)
 
-    def print_error_and_die(self, message, code):
+    def http_error(self, message, code):
         """
-        Print a ClientError and quit the program.
+        Print an HTTP request error.
         """
         LENSE.FEEDBACK.error('HTTP {0}: {1}'.format(code, message))
         exit(code)
+
+    def error(self, message):
+        """
+        Print a ClientError message.
+        """
+        LENSE.FEEDBACK.error(message)
+        exit(1)
 
     def authorize(self):
         """
@@ -86,16 +88,19 @@ class ClientHandler(ClientCommon):
         # Bootstrap the client
         self._bootstrap()
 
-        # Return the client
-        return self
-
     def request(self, **kwargs):
         """
         Make a request to the API server.
         """
-        path   = self.kwargs.get('path', self.path)
-        method = self.kwargs.get('method', self.method)
-        data   = self._get_data()
+        
+        # Load request attributes
+        path   = kwargs.get('path', self.kwargs.get('path', None))
+        method = kwargs.get('method', self.kwargs.get('method', None))
+        data   = self._load_data(kwargs.get('data', self.kwargs.get('data', None)))
+        
+        # Path / method required
+        if not path or not method:
+            raise ClientError('Request attributes "path" and "method" required')
         
         # Make the API request
         return self.rest.request(path, method, data)
@@ -139,7 +144,8 @@ class ClientHandler_CLI(ClientHandler):
         self.kwargs = ClientArgs_CLI.parse()
         
         # Authorize the user account run the client
-        self.authorize().run()
+        self.authorize()
+        self.run()
 
 class ClientHandler_Mod(ClientHandler):
     """

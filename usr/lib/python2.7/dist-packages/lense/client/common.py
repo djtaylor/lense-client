@@ -5,7 +5,7 @@ from os.path import expanduser, dirname, isdir, isfile
 
 # Lense Libraries
 from lense.common.http import HEADER, MIME_TYPE
-from lense.common.exceptions import ClientError
+from lense.common.exceptions import ClientError, RequestError
 
 class ClientResponse(object):
     """
@@ -39,4 +39,11 @@ class ClientCommon(object):
         Raise a ClientError if ensure fails.
         """
         kwargs['exc'] = ClientError
+        return LENSE.ensure(*args, **kwargs)
+    
+    def ensure_request(self, *args, **kwargs):
+        """
+        Raise a RequestError if a client request fails.
+        """
+        kwargs['exc'] = RequestError
         return LENSE.ensure(*args, **kwargs)

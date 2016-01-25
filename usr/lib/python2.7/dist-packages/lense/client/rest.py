@@ -105,7 +105,7 @@ class RESTInterface(ClientCommon):
         response = method_handler(request_url, headers=self.headers(), params=data)
         
         # Make sure the response is OK
-        self.ensure(response.status_code,
+        self.ensure_request(response.status_code,
             value = 200,
             error = 'Request failed: HTTP {0}: {1}'.format(response.status_code, self._get_error(response)),
             debug = 'Request OK: path={0}, method={1}, user={2}, group={3}'.format(path, method, self.user, self.group),
