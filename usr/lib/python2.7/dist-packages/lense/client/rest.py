@@ -83,7 +83,7 @@ class RESTInterface(ClientCommon):
             HEADER.ACCEPT: MIME_TYPE.TEXT.PLAIN,
             HEADER.API_USER: self.user,
             HEADER.API_GROUP: self.group,
-            HEADER.API_TOKEN: self.token,
+            HEADER.API_TOKEN: getattr(self, 'token', None),
             HEADER.API_KEY: self.key
         }
         

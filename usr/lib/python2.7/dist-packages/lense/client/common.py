@@ -4,10 +4,8 @@ from os import makedirs
 from os.path import expanduser, dirname, isdir, isfile
 
 # Lense Libraries
-from lense.common import init_project
 from lense.common.http import HEADER, MIME_TYPE
 from lense.common.exceptions import ClientError
-from lense.client.rest import RESTInterface
 
 class ClientResponse(object):
     """

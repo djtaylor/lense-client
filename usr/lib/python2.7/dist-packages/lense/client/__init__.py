@@ -5,8 +5,9 @@ def cli():
     """
     Load the client CLI handler.
     """
+    client = ClientHandler_CLI()
     try:
-        client = ClientHandler_CLI()
+        client.bootstrap()
         response = client.run()
         
         # Print the results
