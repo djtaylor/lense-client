@@ -44,6 +44,20 @@ class ClientHandler(ClientCommon):
     def _load_data(self, data):
         return json.loads(data) if data else None
 
+    def params(self, keys):
+        """
+        Retrieve a dictionary of object attributes.
+        
+        :param keys: A list of keys to retrieve
+        :type  keys: list
+        :rtype: list
+        """
+        params = {}
+        for key in keys:
+            if hasattr(self, key):
+                params[key] = getattr(self, key)
+        return params
+
     def http_response(self, content, code=200):
         """
         Print a successfull HTTP response.
