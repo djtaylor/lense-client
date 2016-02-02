@@ -1,6 +1,7 @@
 import json
 import requests
 from sys import exit
+from threading import Thread
 from os import environ, path, unlink
 
 # Lense Libraries
@@ -170,3 +171,48 @@ class ClientHandler_Mod(ClientHandler):
         
         # Load arguments
         self.kwargs = kwargs
+        
+        # Multi-threaded response container
+        self._response = {}
+        
+    def _thread_worker(self, key, path, method, data=None):
+        """
+        Worker method for handled threaded API calls.
+        
+        :param    key: The key to access the response object with
+        :type     key: str
+        :param   path: The request path
+        :type    path: str
+        :param method: The request method
+        :type  method: str
+        :param   data: Additional request data
+        :type    data: dict
+        """
+        
+        self._response[key] = self.request(path=path, method=method, data=data)
+        
+    def request_threaded(self, requests):
+        """
+        Multi-threaded request handler.
+        """
+        
+        # Threads / responses
+        threads   = []
+        
+        # Process each request
+        for key, attr in requests.iteritems():
+        
+            # Get any request data
+            data   = None if (len(attr) == 2) else attr[2]
+        
+            # Create the thread, append, and start
+            thread = Thread(target=self._thread_worker, args=[key, attr[0], attr[1], data])
+            threads.append(thread)
+            thread.start()
+            
+        # Wait for the API calls to complete
+        for thread in threads:
+            thread.join()
+            
+        # Return the response object
+        return self._response
