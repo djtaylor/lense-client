@@ -1,0 +1,69 @@
+{
+    "default": [
+        {
+            "id": "create_test_user",
+            "desc": "Create test API user account",
+            "path": "user",
+            "method": "POST",
+            "data": {
+                "uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "email": "test@test.com",
+                "first_name": "Test",
+                "last_name": "Surname",
+                "password": "test123##",
+                "password_confirm": "test123##",
+                "username": "test"
+            },
+            "expects": {
+                "code": 200,
+                "json": {
+                    "uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                    "username": "test",
+                    "first_name": "Test",
+                    "last_name": "Surname",
+                    "email": "test@test.com",
+                    "api_key": "*"
+                }
+            }
+        },
+        {
+            "id": "get_test_user",
+            "desc": "Get test API user account",
+            "path": "user",
+            "method": "GET",
+            "data": {
+                "uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+            },
+            "expects": {
+                "code": 200,
+                "json": {
+                    "uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                    "username": "test",
+                    "first_name": "Test",
+                    "last_name": "Surname",
+                    "email": "test@test.com",
+                    "api_key": "*"
+                }
+            }
+        },
+        {
+            "id": "update_test_user",
+            "desc": "Update test API user account"
+            "path": "user",
+            "method": "PUT",
+            "data": {
+                "uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "email": "test2@test.com",
+                "username": "test2"
+            },
+            "expects": {
+                "code": 200,
+                "json": {
+                    "uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                    "email": "test2@test.com",
+                    "username": "test2"
+                }
+            }
+        }
+    ]
+}
