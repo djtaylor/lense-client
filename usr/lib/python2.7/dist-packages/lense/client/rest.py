@@ -1,10 +1,10 @@
 import requests
+from exceptions import ValueError
 
 # Lense Libraries
-from lense.client.common import ClientCommon, ClientResponse
 from lense.common.http import HEADER, MIME_TYPE, PATH, HTTP_GET
 
-class RESTInterface(ClientCommon):
+class RESTInterface(object):
     """
     Class object for handling HTTP interactions with the API server
     on behalf of the client.
@@ -38,12 +38,15 @@ class RESTInterface(ClientCommon):
         :param response: The Python requests response object
         :type  response: object
         """
-        response_json = response.json()
-        
-        # Return the error message
-        return self.ensure(response_json.get('error', False),
-            error = 'Could not find error message in HTTP response',
-            code  = 500)
+        try:
+            response_json = response.json()
+            
+            # Return the error message
+            return LENSE.CLIENT.ensure(response_json.get('error', False),
+                error = 'Could not find error message in HTTP response',
+                code  = 500)
+        except ValueError as e:
+            return 'Internal server error. Please check Apache logs on the API server'
         
     def _get_data(self, response, key=None, default=None):
         """
@@ -105,7 +108,7 @@ class RESTInterface(ClientCommon):
         response = method_handler(request_url, headers=self.headers(), params=data)
         
         # Make sure the response is OK
-        self.ensure_request(response.status_code,
+        LENSE.CLIENT.ensure_request(response.status_code,
             value = 200,
             error = 'Request failed: HTTP {0}: {1}'.format(response.status_code, self._get_error(response)),
             debug = 'Request OK: path={0}, method={1}, user={2}, group={3}'.format(path, method, self.user, self.group),
@@ -113,10 +116,17 @@ class RESTInterface(ClientCommon):
         
         # If extracting and returning a data key
         if extract:
-            return self.ensure(self._get_data(response, extract),
+            return LENSE.CLIENT.ensure(self._get_data(response, extract),
                 isnot = None,
                 error = 'Failed to extract key "{0}" from response data'.format(extract),
                 code  = 500)
             
         # Return response data
-        return ClientResponse(self._get_data(response), response.status_code)
+        return LENSE.CLIENT.response(self._get_data(response), response.status_code)
+    
+    @classmethod
+    def construct(cls, user, group, key):
+        """
+        Class method for constructing the client REST interface.
+        """
+        LENSE.CLIENT.REST = cls(user, group, key)

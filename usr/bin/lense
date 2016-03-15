@@ -1,4 +1,12 @@
-#!/usr/bin/python
-from lense.client import cli
+#!/usr/bin/env python
+from lense.client import LenseClient
+from lense.common import init_project
 
-cli()
+if __name__ == '__main__':
+    
+    # Initialize commons
+    init_project()
+    LENSE.SETUP.client()
+    
+    # Run Powertools
+    LenseClient.run()

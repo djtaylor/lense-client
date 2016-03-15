@@ -3,14 +3,6 @@
 		{
 			"key": "request",
 			"help": "Make a request to the Lense API engine"
-		},
-		{
-			"key": "cache",
-			"help": "Generate or update the server support cache"
-		},
-		{
-			"key": "support",
-			"help": "Show supported server capabilities"
 		}
 	],
 	"options": [
