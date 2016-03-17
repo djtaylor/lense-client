@@ -1,10 +1,12 @@
 import json
 from sys import exit
+from os import makedirs
 from threading import Thread
-from os.path import expanduser, isfile
+from os.path import expanduser, isfile, isdir
 
 # Lense Libraries
 from lense import import_class
+from lense.client import CLIENT_HOME, SUPPORT_CACHE
 from lense.common.exceptions import ClientError, RequestError
 
 class ClientResponse(object):
@@ -22,25 +24,27 @@ class ClientInterface(object):
     def __init__(self):
         self.HANDLERS = import_class('ClientHandlers', 'lense.client.handlers')
         self.ARGS     = import_class('ClientArgs', 'lense.client.args', init=False)
-        self.REST     = import_class('ClientREST', 'lense.client.rest', kwargs={ 'user': None, 'group': None, 'key': None })
+        self.REST     = import_class('ClientREST', 'lense.client.rest', init=False)
         
         # Client attributes
-        self.home     = expanduser('~/.lense')
         self.support  = None
         
     def cache_support(self):
         """
         Build the API request support cache.
         """
-        cache_file = '{0}/support.cache.json'.format(self.home)
+        
+        # Make the home directory
+        if not isdir(CLIENT_HOME):
+            makedirs(CLIENT_HOME)
         
         # Cache file already exists
-        if isfile(cache_file):
-            self.support = json.loads(open(cache_file, 'r').read())
+        if isfile(SUPPORT_CACHE):
+            self.support = json.loads(open(SUPPORT_CACHE, 'r').read())
             return True
         
         # Get server API support
-        response = LENSE.CLIENT.REST.request('support', 'GET')
+        response = LENSE.CLIENT.REST.request_anonymous('support', 'GET')
         
         # Failed to retrieve server API support
         LENSE.CLIENT.ensure_request(response.code,
@@ -55,9 +59,6 @@ class ClientInterface(object):
         # Load the support cache
         self.support = response.content
         return True
-        
-    def _load_data(self, data):
-        return json.loads(data) if data else None
 
     def params(self, keys):
         """
@@ -114,59 +115,33 @@ class ClientInterface(object):
             
         # Return the response object
         return self._response
-    
-    def authorize(self):
-        """
-        Public method for authorizing a user account.
-        """
-        for k in ['user', 'group', 'key']:
-            if not self.kwargs.get(k, False):
-                raise ClientError('Missing required authorization key: {0}'.format(k))
         
-        # User attributes
-        self.user  = self.kwargs.get('user')
-        self.group = self.kwargs.get('group')
-        self.key   = self.kwargs.get('key')
-
-        # Store the command
-        self.command = self.kwargs.get('command')
-
-        # Bootstrap the client
-        self._bootstrap()
-
-    def request(self, **kwargs):
-        """
-        Make a request to the API server.
-        """
-        
-        # Load request attributes
-        path   = kwargs.get('path', self.kwargs.get('path', None))
-        method = kwargs.get('method', self.kwargs.get('method', None))
-        data   = self._load_data(kwargs.get('data', self.kwargs.get('data', None)))
-        
-        # Path / method required
-        if not path or not method:
-            raise ClientError('Request attributes "path" and "method" required')
-        
-        # Make the API request
-        return self.rest.request(path, method, data)
-        
-    def http_response(self, content, code=200):
+    def http_response(self, response, raw=False):
         """
         Print a successfull HTTP response.
         """
-        try:
-            content = '\n\n{0}\n'.format(json.dumps(content, indent=2))
-        except:
-            pass
-        LENSE.FEEDBACK.success('HTTP {0}: {1}'.format(code, content))
+        content = response.content
+        
+        # Raw output
+        if raw:
+            print json.dumps(response.content)
+            
+        # Formatted output
+        else:
+            try:
+                content = '\n\n{0}\n'.format(json.dumps(response.content, indent=2))
+            except:
+                pass
+            LENSE.FEEDBACK.success('HTTP {0}: {1}'.format(response.code, content))
+        
+        # Request finished
         exit(0)
 
-    def http_error(self, message, code):
+    def http_error(self, response, raw=False):
         """
         Print an HTTP request error.
         """
-        LENSE.FEEDBACK.error('HTTP {0}: {1}'.format(code, message))
+        LENSE.FEEDBACK.error('HTTP {0}: {1}'.format(response.code, response.message))
         exit(code)
 
     def error(self, message):

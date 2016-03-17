@@ -22,7 +22,8 @@ class ClientHandlers(object):
         Return all available handlers.
         """
         return {
-            "request": import_class('ClientHandler_Request', 'lense.client.handlers.request', init=False)
+            "request": import_class('ClientHandler_Request', 'lense.client.handlers.request', init=False),
+            "test": import_class('ClientHandler_Test', 'lense.client.handlers.test', init=False)
         }
         
     def get_args(self, handler=None):

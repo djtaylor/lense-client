@@ -5,7 +5,7 @@ from lense.common import init_project
 if __name__ == '__main__':
     
     # Initialize commons
-    init_project()
+    init_project('CLIENT')
     LENSE.SETUP.client()
     
     # Run Powertools

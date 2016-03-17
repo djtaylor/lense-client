@@ -19,13 +19,22 @@ class ClientHandler_Base(object):
         Public method for running the command handler.
         """
     
-        # Unsupported command
-        if not self.command in self.commands:
-            LENSE.CLIENT.ARGS.help()
-            LENSE.die("\nUnsupported command: {0}\n".format(self.command))
+        # If commands are supported
+        if self.commands:
+            if not self.command in self.commands:
+                LENSE.CLIENT.ARGS.help()
+                LENSE.die("\nUnsupported command: {0}\n".format(self.command))
     
-        # Run the command
-        getattr(self, self.command)()
+            # Run the method if it exists
+            if hasattr(self, self.command) and callable(getattr(self, self.command)):
+                return getattr(self, self.command)()
+    
+        # Run a default method if found
+        if hasattr(self, 'default') and callable(getattr(self, 'default')):
+            return self.default()
+            
+        # No appropriate method found
+        LENSE.die('No method found for command "{0}" and no default method found'.format(self.command))
     
     def help(self):
         """

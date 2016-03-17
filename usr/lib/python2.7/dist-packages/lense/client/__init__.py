@@ -1,8 +1,13 @@
 from sys import argv, exit
-from os.path import dirname, realpath
+from os.path import dirname, realpath, expanduser
 
 # Lense Libraries
 from lense.common.exceptions import ClientError, RequestError
+
+# Global attributes
+CLIENT_HOME   = expanduser('~/.lense')
+SUPPORT_CACHE = '{0}/support.cache.json'.format(CLIENT_HOME)
+TOKEN_CACHE   = '{0}/token.cache.json'.format(CLIENT_HOME)
 
 class LenseClient(object):
     """
@@ -53,7 +58,7 @@ class LenseClient(object):
                     # Get the target handler
                     target = LENSE.CLIENT.ensure(LENSE.CLIENT.ARGS.get('target'),
                         isnot = None,
-                        error = 'Usage: powertools help [command]',
+                        error = 'Usage: lense help [command]',
                         code  = 1)
                     
                     # Make sure the target is supported

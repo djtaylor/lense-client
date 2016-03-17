@@ -15,7 +15,7 @@ def get_base_commands():
     commands = {
         "help": "Get help for a specific command: lense help <command>"
     }
-    for handler, cls in Client_Handlers().all().iteritems():
+    for handler, cls in ClientHandlers().all().iteritems():
         commands[handler] = cls.desc['summary']
     return commands
 
@@ -110,12 +110,15 @@ class ClientArgs(object):
         self.cmds = cmds
         self.base = base
     
-         # Arguments interface / container
+        # Arguments interface / container
         self.interface = ClientArgsInterface(opts=opts, cmds=cmds)
         self.container = {}
     
         # Parse command line arguments
         self._parse()
+    
+        # Scan environment variables
+        self._getenv()
     
     def list(self):
         """
@@ -128,93 +131,6 @@ class ClientArgs(object):
         Return a dictionary of argument key/values.
         """
         return self.container
-
-    def filter(self, filter=None):
-        """
-        Convert a SQLite filter string into a query object.
-        
-        :param filter: The filter string to parse
-        :type  filter: str
-        :rtype: str
-        """
-        filter = self.get('filter', filter)
-        
-        # No filter found
-        if not filter:
-            return ''
-        
-        # SQL operators and comparison strings
-        sql_operators = ['&&', '||']
-        sql_comparisons = {
-            '=': '=',
-            '==': '==',
-            '~=': 'LIKE',
-            '!=': '!=',
-            '>': '>',
-            '>=': '>=',
-            '<': '<',
-            '<=': '<=',
-            '<>': '<>',
-            '!<': '!<',
-            '!>': '!>'
-        }
-        
-        # Query array / string
-        qa = []
-        qs = ''
-    
-        def _parse_match(match, step):
-            """
-            Parse a SQL match string into an array.
-            
-            :param match: The SQL match string
-            :type  match: str
-            :rtype: list
-            """
-            for f,q in sql_comparisons.iteritems():
-                regex = re.compile(r'(^[^{0}]*){0}([^{0}]*$)'.format(re.escape(f)))
-                if regex.match(match):
-                    left  = regex.sub(r'\g<1>', match)
-                    right = regex.sub(r'\g<2>', match)
-                    return [step, left, q, right]
-    
-        def _parse_operators(query, src, step='WHERE'):
-            """
-            Parse SQL query operators.
-            
-            :param query: The query object
-            :type  query: OrderedDict
-            :param   src: The query string to parse
-            :type    src: str
-            :step   step: The operator to use for the next step
-            :type   step: str
-            """
-            
-            # Parse the next operator
-            if any(x in src for x in sql_operators):
-                op_pos = [src.find('&&'), src.find('||')]
-                op_cur = ' AND' if (op_pos[0] > op_pos[1]) else ' OR'
-                op_cut = min(int(s) for s in op_pos if (s > 0))
-                op_nxt = src[op_cut + 2:]
-                op_key = step
-                
-                # Store the current match
-                query.append(_parse_match(src[:op_cut], op_key))
-                    
-                # Parse the next match
-                return _parse_operators(query, op_nxt, op_cur)
-            
-            # Done parsing operators
-            else:
-                query.append(_parse_match(src, step))
-            
-        # Construct the query array
-        _parse_operators(qa, filter)
-        
-        # Construct and return the query string
-        for qo in qa:
-            qs += '{0} {1} {2} \'{3}\''.format(qo[0], qo[1], qo[2], qo[3])
-        return qs
     
     def set(self, k, v):
         """
@@ -234,6 +150,18 @@ class ClientArgs(object):
         # Return the value
         return _val if not use_json else json_loads(_val)
     
+    def _getenv(self):
+        """
+        Look for API connection environment variables.
+        """
+        for k,v in {
+            'user':  'LENSE_API_USER',
+            'key':   'LENSE_API_KEY',
+            'group': 'LENSE_API_GROUP'
+        }.iteritems():
+            if v in environ and not self.container.get(k, None):
+                self.set(k, environ[v])
+    
     def _desc(self):
          return "{0}\n\n{1}.\n".format(self.desc['title'], self.desc['summary'])
     
@@ -244,7 +172,10 @@ class ClientArgs(object):
             
         # Create a new argument parsing object and populate the arguments
         self.parser = ArgumentParser(description=self._desc(), formatter_class=RawTextHelpFormatter, usage=self.desc['usage'])
-        self.parser.add_argument('command', help=self.interface.commands.help())
+        
+        # Only parse commands if supported
+        if self.interface.commands.keys():
+            self.parser.add_argument('command', help=self.interface.commands.help())
         
         # Base command specific arguments
         if self.base:
