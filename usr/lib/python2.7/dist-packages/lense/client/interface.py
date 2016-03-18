@@ -22,16 +22,16 @@ class ClientInterface(object):
     Interface class for the Lense client.
     """
     def __init__(self):
-        self.HANDLERS = import_class('ClientHandlers', 'lense.client.handlers')
-        self.ARGS     = import_class('ClientArgs', 'lense.client.args', init=False)
+        self.HANDLERS = None
+        self.ARGS     = None
         self.REST     = import_class('ClientREST', 'lense.client.rest', init=False)
         
-        # Client attributes
+        # Support cache
         self.support  = None
         
-    def cache_support(self):
+    def bootstrap(self):
         """
-        Build the API request support cache.
+        Bootstrap the client.
         """
         
         # Make the home directory
@@ -41,24 +41,29 @@ class ClientInterface(object):
         # Cache file already exists
         if isfile(SUPPORT_CACHE):
             self.support = json.loads(open(SUPPORT_CACHE, 'r').read())
-            return True
         
-        # Get server API support
-        response = LENSE.CLIENT.REST.request_anonymous('support', 'GET')
+        # Generate cache
+        else:
         
-        # Failed to retrieve server API support
-        LENSE.CLIENT.ensure_request(response.code,
-            value = 200,
-            error = 'Failed to retrieve server API support',
-            code  = response.code)
+            # Get server API support
+            response = LENSE.CLIENT.REST.request_anonymous('support', 'GET')
+            
+            # Failed to retrieve server API support
+            LENSE.CLIENT.ensure_request(response.code,
+                value = 200,
+                error = 'Failed to retrieve server API support',
+                code  = response.code)
+            
+            # Write the support cache
+            with open(SUPPORT_CACHE, 'w') as f:
+                f.write(json.dumps(response.content))
+            
+            # Load the support cache
+            self.support  = response.content
         
-        # Write the support cache
-        with open(cache_file, 'w') as f:
-            f.write(json.dumps(response.content))
-        
-        # Load the support cache
-        self.support = response.content
-        return True
+        # Load objects
+        self.HANDLERS = import_class('ClientHandlers', 'lense.client.handlers')
+        self.ARGS     = import_class('ClientArgs', 'lense.client.args', init=False)
 
     def params(self, keys):
         """
@@ -137,7 +142,7 @@ class ClientInterface(object):
         # Request finished
         exit(0)
 
-    def http_error(self, response, raw=False):
+    def http_error(self, response):
         """
         Print an HTTP request error.
         """

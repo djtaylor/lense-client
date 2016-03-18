@@ -36,8 +36,8 @@ class LenseClient(object):
         """
         try:
             
-            # Support cache
-            LENSE.CLIENT.cache_support()
+            # Bootstrap the client
+            LENSE.CLIENT.bootstrap()
             
             # Supported handlers
             handlers = LENSE.CLIENT.ARGS.handlers()

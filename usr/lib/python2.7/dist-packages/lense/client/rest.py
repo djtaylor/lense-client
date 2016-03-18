@@ -18,26 +18,36 @@ class ClientREST(object):
         LENSE.CONF.engine.port
     )
     
-    def __init__(self, user, group, key):
+    def __init__(self, user, group, key, endpoint=None):
         
         # API user / group / key / token
         self.user     = user
         self.group    = group
         self.key      = key
         
+        # Endpoint override
+        self._set_endpoint(endpoint)
+        
         # API user token
         self.token    = self._get_token()
         
-    def _get_endpoint(self):
+    def _set_endpoint(self, endpoint):
         """
-        Get the endpoint for the API server.
+        Override the default endpoint.
         """
-        host  = LENSE.CONF.engine.host
-        proto = LENSE.CONF.engine.proto
-        port  = LENSE.CONF.engine.port
+        if not endpoint: return
         
-        # API server endpoint
-        return '{0}://{1}:{2}'.format(proto, host, port)
+        # Endpoint argument must be a dictionary
+        if not isinstance(endpoint, dict):
+            return LENSE.LOG.error('Failed to override endpoint, expected "dict" as argument, found "{0}" instead'.format(type(endpoint)))
+        
+        # Required keys
+        for k in ['host', 'port', 'proto']:
+            if not k in endpoint:
+                return LENSE.LOG.error('Failed to override endpoint, missing required key: {0}'.format(k))
+        
+        # Set the new endpoint
+        self.endpoint = '{0}://{1}:{2}'.format(endpoint['proto'], endpoint['host'], endpoint['port'])
         
     def _get_token(self):
         """
@@ -176,7 +186,7 @@ class ClientREST(object):
         return {}
     
     @classmethod
-    def request_anonymous(cls, path, method, data, extract=False):
+    def request_anonymous(cls, path, method, data={}, extract=False):
         """
         Make an anonymous request to the API server.
         """
@@ -207,8 +217,8 @@ class ClientREST(object):
         return LENSE.CLIENT.response(cls.get_data(response), response.status_code)
     
     @classmethod
-    def construct(cls, user, group, key):
+    def construct(cls, user, group, key, endpoint=None):
         """
         Class method for constructing the client REST interface.
         """
-        LENSE.CLIENT.REST = cls(user, group, key)
+        LENSE.CLIENT.REST = cls(user, group, key, endpoint)

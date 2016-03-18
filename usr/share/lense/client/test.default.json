@@ -1,112 +1,127 @@
-[
-    {
-        "id": "get_users",
-        "desc": "Get all user accounts",
-        "path": "user",
-        "method": "GET"
-    },
-    {
-        "id": "get_groups",
-        "desc": "Get all user groups",
-        "path": "group",
-        "method": "GET"
-    },
-    {
-        "id": "create_test_user",
-        "desc": "Create the test user account",
-        "path": "user",
-        "method": "POST",
-        "data": {
-            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
-            "username": "testuser",
-            "password": "test123!!",
-            "password_confirm": "test123!!",
-            "email": "djtaylor13@gmail.com"
+{
+    "superuser": {
+        "desc": "Superuser test group",
+        "auth": {
+            "user": "ENV",
+            "group": "ENV",
+            "key": "ENV"
         },
-        "expects": {
-            "code": 200,
-            "data": {
-                "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
-                "username": "testuser",
-                "email": "djtaylor13@gmail.com"
-            }
-        }
-    },
-    {
-        "id": "create_test_group",
-        "desc": "Create the test group",
-        "path": "group",
-        "method": "POST",
-        "data": {
-            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645",
-            "name": "dummy",
-            "desc": "Dummy group"
+        "server": {
+            "host": "CONF",
+            "port": "CONF",
+            "proto": "CONF"
         },
-        "expects": {
-            "code": 200,
-            "data": {
-                "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+        "tests": [
+            {
+                "id": "get_users",
+                "desc": "Get all user accounts",
+                "path": "user",
+                "method": "GET"
+            },
+            {
+                "id": "get_groups",
+                "desc": "Get all user groups",
+                "path": "group",
+                "method": "GET"
+            },
+            {
+                "id": "create_test_user",
+                "desc": "Create the test user account",
+                "path": "user",
+                "method": "POST",
+                "data": {
+                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
+                    "username": "testuser",
+                    "password": "test123!!",
+                    "password_confirm": "test123!!",
+                    "email": "djtaylor13@gmail.com"
+                },
+                "expects": {
+                    "code": 200,
+                    "data": {
+                        "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
+                        "username": "testuser",
+                        "email": "djtaylor13@gmail.com"
+                    }
+                }
+            },
+            {
+                "id": "create_test_group",
+                "desc": "Create the test group",
+                "path": "group",
+                "method": "POST",
+                "data": {
+                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645",
+                    "name": "dummy",
+                    "desc": "Dummy group"
+                },
+                "expects": {
+                    "code": 200,
+                    "data": {
+                        "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    }
+                }
+            },
+            {
+                "id": "disable_test_user",
+                "desc": "Disable the test user",
+                "path": "user/disable",
+                "method": "PUT",
+                "data": {
+                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                },
+                "expects": {
+                    "code": 200,
+                    "data": {
+                        "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                    }
+                }
+            },
+            {
+                "id": "enable_test_user",
+                "desc": "Enable the test user",
+                "path": "user/enable",
+                "method": "PUT",
+                "data": {
+                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                },
+                "expects": {
+                    "code": 200,
+                    "data": {
+                        "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                    }
+                }
+            },
+            {
+                "id": "delete_test_user",
+                "desc": "Delete the test user account",
+                "path": "user",
+                "method": "DELETE",
+                "data": {
+                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                },
+                "expects": {
+                    "code": 200,
+                    "data": {
+                        "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                    }
+                }
+            },
+            {
+                "id": "delete_test_group",
+                "desc": "Delete the test group",
+                "path": "group",
+                "method": "DELETE",
+                "data": {
+                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                },
+                "expects": {
+                    "code": 200,
+                    "data": {
+                        "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    }
+                }
             }
-        }
-    },
-    {
-        "id": "disable_test_user",
-        "desc": "Disable the test user",
-        "path": "user/disable",
-        "method": "PUT",
-        "data": {
-            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
-        },
-        "expects": {
-            "code": 200,
-            "data": {
-                "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
-            }
-        }
-    },
-    {
-        "id": "enable_test_user",
-        "desc": "Enable the test user",
-        "path": "user/enable",
-        "method": "PUT",
-        "data": {
-            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
-        },
-        "expects": {
-            "code": 200,
-            "data": {
-                "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
-            }
-        }
-    },
-    {
-        "id": "delete_test_user",
-        "desc": "Delete the test user account",
-        "path": "user",
-        "method": "DELETE",
-        "data": {
-            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
-        },
-        "expects": {
-            "code": 200,
-            "data": {
-                "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
-            }
-        }
-    },
-    {
-        "id": "delete_test_group",
-        "desc": "Delete the test group",
-        "path": "group",
-        "method": "DELETE",
-        "data": {
-            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
-        },
-        "expects": {
-            "code": 200,
-            "data": {
-                "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
-            }
-        }
+        ]
     }
-]
+}
