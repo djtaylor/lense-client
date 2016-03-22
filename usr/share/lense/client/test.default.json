@@ -1,127 +1,462 @@
 {
-    "superuser": {
-        "desc": "Superuser test group",
-        "auth": {
-            "user": "ENV",
-            "group": "ENV",
-            "key": "ENV"
-        },
-        "server": {
-            "host": "CONF",
-            "port": "CONF",
-            "proto": "CONF"
-        },
-        "tests": [
-            {
-                "id": "get_users",
-                "desc": "Get all user accounts",
-                "path": "user",
-                "method": "GET"
-            },
-            {
-                "id": "get_groups",
-                "desc": "Get all user groups",
-                "path": "group",
-                "method": "GET"
-            },
-            {
-                "id": "create_test_user",
-                "desc": "Create the test user account",
-                "path": "user",
-                "method": "POST",
-                "data": {
-                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
-                    "username": "testuser",
-                    "password": "test123!!",
-                    "password_confirm": "test123!!",
-                    "email": "djtaylor13@gmail.com"
+    "id": "default",
+    "sections": {
+        "ALL": {
+            "desc": "Default test manifest to test all handlers.",
+            "tests": [
+                {
+                    "id": "get_users",
+                    "desc": "Get all user accounts",
+                    "path": "user",
+                    "method": "GET"
                 },
-                "expects": {
-                    "code": 200,
+                {
+                    "id": "get_groups",
+                    "desc": "Get all user groups",
+                    "path": "group",
+                    "method": "GET"
+                },
+                {
+                    "id": "get_handlers",
+                    "desc": "Get all handlers",
+                    "path": "handler",
+                    "method": "GET"
+                },
+                {
+                    "id": "list_handlers",
+                    "desc": "Public interface for listing handlers",
+                    "path": "handler/list",
+                    "method": "GET"
+                },
+                {
+                    "id": "get_acl_keys",
+                    "desc": "Retrieve all ACL keys",
+                    "path": "acl/keys",
+                    "method": "GET"
+                },
+                {
+                    "id": "get_acl_objects",
+                    "desc": "Retrieve all ACL objects",
+                    "path": "acl/objects",
+                    "method": "GET"
+                },
+                {
+                    "id": "create_test_user",
+                    "desc": "Create the test user account",
+                    "path": "user",
+                    "method": "POST",
                     "data": {
                         "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
                         "username": "testuser",
+                        "password": "test123!!",
+                        "password_confirm": "test123!!",
                         "email": "djtaylor13@gmail.com"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
+                            "username": "testuser",
+                            "email": "djtaylor13@gmail.com"
+                        }
                     }
-                }
-            },
-            {
-                "id": "create_test_group",
-                "desc": "Create the test group",
-                "path": "group",
-                "method": "POST",
-                "data": {
-                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645",
-                    "name": "dummy",
-                    "desc": "Dummy group"
                 },
-                "expects": {
-                    "code": 200,
+                {
+                    "id": "create_test_group",
+                    "desc": "Create the test group",
+                    "path": "group",
+                    "method": "POST",
+                    "data": {
+                        "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645",
+                        "name": "dummy",
+                        "desc": "Dummy group"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                        }
+                    }
+                },
+                {
+                    "id": "add_test_user_to_group",
+                    "desc": "Add the test user to the test group",
+                    "path": "group/member",
+                    "method": "POST",
+                    "data": {
+                        "user": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
+                        "group": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645",
+                            "member": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                        }
+                    }
+                },
+                {
+                    "id": "add_test_user_to_group_again",
+                    "desc": "Attempt to add the test user to the test group again",
+                    "path": "group/member",
+                    "method": "POST",
+                    "data": {
+                        "user": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
+                        "group": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    },
+                    "expects": {
+                        "code": 400
+                    }
+                },
+                {
+                    "id": "add_missing_user_to_group",
+                    "desc": "Attempt to add a non-existent user to a group",
+                    "path": "group/member",
+                    "method": "POST",
+                    "data": {
+                        "user": "7acc46b2-9445-4f48-9e8b-b4d9e7644444",
+                        "group": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    },
+                    "expects": {
+                        "code": 404
+                    }
+                },
+                {
+                    "id": "remove_missing_user_from_group",
+                    "desc": "Attempt to remove a non-existent user from a group",
+                    "path": "group/member",
+                    "method": "DELETE",
+                    "data": {
+                        "user": "7acc46b2-9445-4f48-9e8b-b4d9e7644444",
+                        "group": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    },
+                    "expects": {
+                        "code": 404
+                    }
+                },
+                {
+                    "id": "group_delete_w_members",
+                    "desc": "Try to delete a group with members",
+                    "path": "group",
+                    "method": "DELETE",
                     "data": {
                         "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    },
+                    "expects": {
+                        "code": 400
                     }
-                }
-            },
-            {
-                "id": "disable_test_user",
-                "desc": "Disable the test user",
-                "path": "user/disable",
-                "method": "PUT",
-                "data": {
-                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
                 },
-                "expects": {
-                    "code": 200,
+                {
+                    "id": "remove_test_user_from_group",
+                    "desc": "Remove the test user from the test group",
+                    "path": "group/member",
+                    "method": "DELETE",
+                    "data": {
+                        "user": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
+                        "group": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645",
+                            "member": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                        }
+                    }
+                },
+                {
+                    "id": "remove_test_user_from_group_again",
+                    "desc": "Attempt to remove the test user from the test group again",
+                    "path": "group/member",
+                    "method": "DELETE",
+                    "data": {
+                        "user": "7acc46b2-9445-4f48-9e8b-b4d9e7628515",
+                        "group": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    },
+                    "expects": {
+                        "code": 400
+                    }
+                },
+                {
+                    "id": "disable_test_user",
+                    "desc": "Disable the test user",
+                    "path": "user/disable",
+                    "method": "PUT",
                     "data": {
                         "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                        }
                     }
-                }
-            },
-            {
-                "id": "enable_test_user",
-                "desc": "Enable the test user",
-                "path": "user/enable",
-                "method": "PUT",
-                "data": {
-                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
                 },
-                "expects": {
-                    "code": 200,
+                {
+                    "id": "enable_test_user",
+                    "desc": "Enable the test user",
+                    "path": "user/enable",
+                    "method": "PUT",
                     "data": {
                         "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                        }
                     }
-                }
-            },
-            {
-                "id": "delete_test_user",
-                "desc": "Delete the test user account",
-                "path": "user",
-                "method": "DELETE",
-                "data": {
-                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
                 },
-                "expects": {
-                    "code": 200,
+                {
+                    "id": "reset_test_user_pw",
+                    "desc": "Reset the password for the test user",
+                    "path": "user/pwreset",
+                    "method": "PUT",
                     "data": {
                         "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                    },
+                    "expects": {
+                        "code": 200
                     }
-                }
-            },
-            {
-                "id": "delete_test_group",
-                "desc": "Delete the test group",
-                "path": "group",
-                "method": "DELETE",
-                "data": {
-                    "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
                 },
-                "expects": {
-                    "code": 200,
+                {
+                    "id": "reset_missing_user_pw",
+                    "desc": "Attempt to reset a password for a missing user account",
+                    "path": "user/pwreset",
+                    "method": "PUT",
+                    "data": {
+                        "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628444"
+                    },
+                    "expects": {
+                        "code": 404
+                    }
+                },
+                {
+                    "id": "group_delete_protected",
+                    "desc": "Attempt to delete a protected group",
+                    "path": "group",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "00000000-0000-0000-0000-000000000000"
+                    },
+                    "expects": {
+                        "code": 400
+                    }
+                },
+                {
+                    "id": "delete_user_admin",
+                    "desc": "Attempt to delete the default administrator account",
+                    "path": "user",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "00000000-0000-0000-0000-000000000000"
+                    },
+                    "expects": {
+                        "code": 400
+                    }
+                },
+                {
+                    "id": "delete_test_user",
+                    "desc": "Delete the test user account",
+                    "path": "user",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628515"
+                        }
+                    }
+                },
+                {
+                    "id": "delete_test_group",
+                    "desc": "Delete the test group",
+                    "path": "group",
+                    "method": "DELETE",
                     "data": {
                         "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                        }
+                    }
+                },
+                {
+                    "id": "delete_protected_handler",
+                    "desc": "Attempt to delete a protected handler",
+                    "path": "handler",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "1a9910fe-1e9a-417a-bb1b-ca8dbfa59168"
+                    },
+                    "expects": {
+                        "code": 403
+                    }
+                },
+                {
+                    "id": "create_dummy_handler",
+                    "desc": "Create a dummy handler",
+                    "path": "handler",
+                    "method": "POST",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555",
+                        "name": "Dummy_Handler",
+                        "path": "dummy",
+                        "desc": "This doesn't do anything",
+                        "method": "GET",
+                        "mod": "dummy.module",
+                        "cls": "Dummy_Class",
+                        "protected": false,
+                        "enabled": false,
+                        "object": false,
+                        "object_key": null,
+                        "rmap": {},
+                        "validate": false
+                    }
+                },
+                {
+                    "id": "protect_dummy_handler",
+                    "desc": "Change the protected value for the dummy handler",
+                    "path": "handler",
+                    "method": "PUT",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555",
+                        "protected": true
+                    }
+                },
+                {
+                    "id": "delete_protected_dummy_handler",
+                    "desc": "Attempt to delete the protected dummy handler",
+                    "path": "handler",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555"
+                    },
+                    "expects": {
+                        "code": 403
+                    }
+                },
+                {
+                    "id": "unprotect_dummy_handler",
+                    "desc": "Change the protected value for the dummy handler",
+                    "path": "handler",
+                    "method": "PUT",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555",
+                        "protected": false
+                    }
+                },
+                {
+                    "id": "open_dummy_handler",
+                    "desc": "Open the dummy handler for editing",
+                    "path": "handler/open",
+                    "method": "PUT",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555"
+                    }
+                },
+                {
+                    "id": "close_dummy_handler",
+                    "desc": "Finish editing the dummy handler",
+                    "path": "handler/close",
+                    "method": "PUT",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555"
+                    }
+                },
+                {
+                    "id": "delete_dummy_handler",
+                    "desc": "Delete the dummy handler",
+                    "path": "handler",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555"
+                    }
+                },
+                {
+                    "id": "delete_dummy_handler_again",
+                    "desc": "Attempt to delete the dummy handler again",
+                    "path": "handler",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555"
+                    },
+                    "expects": {
+                        "code": 404
+                    }
+                },
+                {
+                    "id": "create_dummy_acl_key",
+                    "desc": "Create a dummy ACL key",
+                    "path": "acl/keys",
+                    "method": "POST",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555",
+                        "name": "dummy_acl_key",
+                        "desc": "Dummy ACL key",
+                        "type_object": false,
+                        "type_global": true
+                    }
+                },
+                {
+                    "id": "create_dummy_acl_object",
+                    "desc": "Create a dummy ACL object",
+                    "path": "acl/objects",
+                    "method": "POST",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555",
+                        "name": "dummy_acl_object",
+                        "object_mod": "dummy.module",
+                        "object_cls": "Dummy_Class",
+                        "object_key": "uuid",
+                        "object_type": "dummy",
+                        "def_acl": "11111111-2222-3333-4444-555555555555",
+                        "validate": false
+                    }
+                },
+                {
+                    "id": "delete_dummy_acl_object",
+                    "desc": "Delete the dummy ACL object",
+                    "path": "acl/objects",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555"
+                    }
+                },
+                {
+                    "id": "get_dummy_acl_key",
+                    "desc": "Get the dummy ACL key",
+                    "path": "acl/keys",
+                    "method": "GET",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555"
+                    }
+                },
+                {
+                    "id": "delete_dummy_acl_key",
+                    "desc": "Delete a dummy ACL key",
+                    "path": "acl/keys",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555"
+                    }
+                },
+                {
+                    "id": "get_deleted_dummy_acl_key",
+                    "desc": "Attempt to get the deleted dummy ACL key",
+                    "path": "acl/keys",
+                    "method": "GET",
+                    "data": {
+                        "uuid": "11111111-2222-3333-4444-555555555555"
+                    },
+                    "expects": {
+                        "code": 404
                     }
                 }
-            }
-        ]
+            ]
+        }
     }
 }

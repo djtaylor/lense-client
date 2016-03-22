@@ -81,6 +81,6 @@ class LenseClient(object):
             
         # Request error
         except RequestError as e:
-            LENSE.LOG.exception(e.message)
-            LENSE.CLIENT.http_error(e.message, e.code)
+            LENSE.LOG.error(e.message)
+            LENSE.CLIENT.http_error(e.code, e.message)
             

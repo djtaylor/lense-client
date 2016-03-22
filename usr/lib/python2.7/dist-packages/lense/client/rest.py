@@ -55,16 +55,23 @@ class ClientREST(object):
         """
         
         # Has the token been cached
+        cache = {}
         if isfile(TOKEN_CACHE):
             with open(TOKEN_CACHE, 'r') as f:
-                return f.read()
+                cache = json.loads(f.read())
+                
+                # Get the user's token
+                if self.user in cache:
+                    return cache[self.user]
                 
         # Request a token
-        token = self.request(PATH.GET_TOKEN, HTTP_GET, data=None, extract='token')
-        
-        # Cache the token
-        with open(TOKEN_CACHE, 'w') as f:
-            f.write(token)
+        if self.user and self.group and self.key:
+            token = self.request(PATH.GET_TOKEN, HTTP_GET, data=None, extract='token')
+            
+            # Cache the token
+            with open(TOKEN_CACHE, 'w') as f:
+                cache[self.user] = token
+                f.write(json.dumps(cache))
         
     def headers(self):
         """
@@ -100,7 +107,7 @@ class ClientREST(object):
         if ensure:
             LENSE.CLIENT.ensure_request(response.status_code,
                 value = 200,
-                error = 'Request failed: HTTP {0}: {1}'.format(response.status_code, ClientREST.get_error(response)),
+                error = ClientREST.get_error(response),
                 debug = 'Request OK: path={0}, method={1}, user={2}, group={3}'.format(path, method, self.user, self.group),
                 code  = response.status_code)
             

@@ -1,5 +1,5 @@
 import json
-from sys import getsizeof
+from sys import getsizeof, exit
 from os.path import isfile
 
 # Lense Libraries
@@ -27,6 +27,12 @@ class ClientHandler_Test(ClientHandler_Base):
             "long": "manifest",
             "help": "Specify a path to a test manifest in JSON format.",
             "action": "store"
+        },
+        {
+            "short": "c",
+            "long": "continue",
+            "help": "Continue test run even if errors occur.",
+            "action": "store_true"
         }
     ] + OPTIONS
     
@@ -36,8 +42,9 @@ class ClientHandler_Test(ClientHandler_Base):
     def __init__(self):
         super(ClientHandler_Test, self).__init__(self.id)
         
-        # Test manifest
+        # Test manifest / continuous mode
         self.manifest = None
+        self.cont     = LENSE.CLIENT.ARGS.get('continue', False)
         
     def get_manifest(self):
         """
@@ -105,9 +112,15 @@ class ClientHandler_Test(ClientHandler_Base):
         # Load the test manifest
         self.get_manifest()
         
+        # Test ID
+        test_id = self.manifest['id']
+        
+        # Sections block required
+        if not 'sections' in self.manifest:
+            LENSE.die('Test manifest must contain a "sections" block')
+        
         # Process the manifest
-        for section_key, section_block in self.manifest.iteritems():
-            LENSE.FEEDBACK.info('Initializing test run: section="{0}", desc="{1}"'.format(section_key, section_block.get('desc', 'No description provided')))
+        for section_key, section_block in self.manifest['sections'].iteritems():
         
             # Make sure a test block exists
             if not isinstance(section_block.get('tests', None), list):
@@ -116,14 +129,30 @@ class ClientHandler_Test(ClientHandler_Base):
             # Get authentication / server options
             auth   = self._get_authentication(section_block.get('auth', {}))
             server = self._get_server(section_block.get('server', {}))
-            LENSE.FEEDBACK.info('Authentication: user="{0}", group="{1}", key="{2}"'.format(auth['user'], auth['group'], auth['key']))
-            LENSE.FEEDBACK.info('Endpoint: {0}://{1}:{2}'.format(server['proto'], server['host'], server['port']))
+        
+            # Begin test feedback
+            LENSE.FEEDBACK.block([
+                'Test ID:    {0}'.format(section_key),
+                'Test Desc:  {0}'.format(section_block.get('desc', 'No description provided')),
+                'Auth User:  {0}'.format(auth['user']),
+                'Auth Group: {0}'.format(auth['group']),
+                'Endpoint:   {0}://{1}:{2}'.format(server['proto'], server['host'], server['port'])
+            ], 'INIT')
         
             # Construct REST client
             LENSE.CLIENT.REST.construct(user=auth['user'], group=auth['group'], key=auth['key'], endpoint=server)
         
+            # Errors flag
+            has_errors = False
+        
             # Scan each test block
             for test_block in section_block['tests']:
+                LENSE.FEEDBACK.block([
+                    'ID:          {0}'.format(test_block['id']),
+                    'Description: {0}'.format(test_block['desc']),
+                    'Path:        {0}'.format(test_block['path']),
+                    'Method:      {0}'.format(test_block['method'])
+                ], 'RUNNING')
         
                 # Request parameters
                 params = {
@@ -148,30 +177,44 @@ class ClientHandler_Test(ClientHandler_Base):
                     
                     # Response data mismatch
                     if not data_ok[0]:
-                        LENSE.FEEDBACK.error('id={0}, expects.code={1}, response.code={2}, data.expects[{3}]={4} data.returned[{3}]={5}'.format(*[
-                            test_block['id'],
+                        LENSE.FEEDBACK.error('expects.code={0}, response.code={1}, data.expects[{2}]={3} data.returned[{2}]={4}'.format(
                             expects['code'],
                             response.code,
                             data_ok[1]['key'],
                             data_ok[1]['value'][0],
                             data_ok[1]['value'][1]
-                        ]))
+                        ))
+                        has_errors = True
+                        
+                        # Do not continue after error
+                        if not self.cont:
+                            LENSE.FEEDBACK.error('Test block failed!')
+                            exit(response.code)
                         
                     # Response data match
                     else:
-                        LENSE.FEEDBACK.success('id={0}, expects.code={1}, response.code={2}, data.returned=OK, rsp_size_bytes={3}'.format(*[
-                            test_block['id'],
+                        LENSE.FEEDBACK.success('expects.code={0}, response.code={1}, data.returned=OK, rsp_size_bytes={2}'.format(
                             expects['code'],
                             response.code,
                             getsizeof(response.content)
-                        ]))
+                        ))
                     
                 # Response code mismatch
                 else:
-                    LENSE.FEEDBACK.error('id={0}, expects.code={1}, response.code={2}, rsp_size_bytes={3}'.format(*[
-                        test_block['id'],
+                    LENSE.FEEDBACK.error('expects.code={0}, response.code={1}, rsp_size_bytes={2}'.format(
                         expects['code'],
                         response.code,
                         getsizeof(response.content)
-                    ]))
+                    ))
+                    has_errors = True
+                    
+                    # Do not continue after error
+                    if not self.cont:
+                        LENSE.FEEDBACK.error('Test block failed!')
+                        exit(response.code)
             
+            # Section complete
+            if has_errors:
+                LENSE.FEEDBACK.warn('Not all tests completed successfully. Please check the server logs to troubleshoot')
+            else:
+                LENSE.FEEDBACK.success('All tests completed successfully!')

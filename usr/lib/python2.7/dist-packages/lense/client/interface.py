@@ -40,6 +40,7 @@ class ClientInterface(object):
         
         # Cache file already exists
         if isfile(SUPPORT_CACHE):
+            LENSE.LOG.info('Loading supported API operations cache <- {0}'.format(SUPPORT_CACHE))
             self.support = json.loads(open(SUPPORT_CACHE, 'r').read())
         
         # Generate cache
@@ -57,8 +58,10 @@ class ClientInterface(object):
             # Write the support cache
             with open(SUPPORT_CACHE, 'w') as f:
                 f.write(json.dumps(response.content))
+            LENSE.LOG.info('Cached supported API operations -> {0}'.format(SUPPORT_CACHE))
             
             # Load the support cache
+            LENSE.LOG.info('Loading supported API operations cache <- {0}'.format(SUPPORT_CACHE))
             self.support  = response.content
         
         # Load objects
@@ -142,11 +145,11 @@ class ClientInterface(object):
         # Request finished
         exit(0)
 
-    def http_error(self, response):
+    def http_error(self, code, msg):
         """
         Print an HTTP request error.
         """
-        LENSE.FEEDBACK.error('HTTP {0}: {1}'.format(response.code, response.message))
+        LENSE.FEEDBACK.error('HTTP {0}: {1}'.format(code, msg))
         exit(code)
 
     def error(self, message):
