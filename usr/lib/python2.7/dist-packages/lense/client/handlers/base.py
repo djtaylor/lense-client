@@ -7,6 +7,7 @@ class ClientHandler_Base(object):
             desc = self.desc,
             opts = self.options,
             cmds = self.commands,
+            objs = getattr(self, 'objects', None),
             base = False
         )
         

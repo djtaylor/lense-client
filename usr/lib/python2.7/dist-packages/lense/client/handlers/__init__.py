@@ -23,7 +23,8 @@ class ClientHandlers(object):
         """
         return {
             "request": import_class('ClientHandler_Request', 'lense.client.handlers.request', init=False),
-            "test": import_class('ClientHandler_Test', 'lense.client.handlers.test', init=False)
+            "test": import_class('ClientHandler_Test', 'lense.client.handlers.test', init=False),
+            "module": import_class('ClientHandler_Module', 'lense.client.handlers.module', init=False)
         }
         
     def get_args(self, handler=None):

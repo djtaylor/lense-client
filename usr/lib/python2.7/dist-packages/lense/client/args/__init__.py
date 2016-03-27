@@ -104,10 +104,11 @@ class ClientArgs(object):
     Public class object for constructing arguments object for base
     and sub-commands.
     """
-    def __init__(self, desc, opts, cmds, base):
+    def __init__(self, desc, opts, cmds, objs, base):
         self.desc = desc
         self.opts = opts
         self.cmds = cmds
+        self.objs = objs
         self.base = base
     
         # Arguments interface / container
@@ -181,6 +182,11 @@ class ClientArgs(object):
         if self.base:
             self.parser.add_argument('target', nargs='?', default=None, help='Target command for help')
 
+        # Load module objects
+        if self.objs:
+            for k,a in self.objs.iteritems():
+                self.parser.add_argument(k, nargs='?', default=None, help=a['help'])
+
         # Load client switches
         for arg in self.interface.options:
             self.parser.add_argument(arg.short, arg.long, help=arg.help, action=arg.action)
@@ -208,7 +214,12 @@ class ClientArgs(object):
         return [h for h in LENSE.CLIENT.HANDLERS.all().keys()]
     
     @classmethod
-    def construct(cls, desc=ClientArgs_Base.desc, opts=ClientArgs_Base.options, cmds=ClientArgs_Base.commands, base=True):
+    def construct(cls, 
+        desc = ClientArgs_Base.desc, 
+        opts = ClientArgs_Base.options, 
+        cmds = ClientArgs_Base.commands, 
+        objs = None, 
+        base = True):
         """
         Method for constructing and returning an arguments handler.
         
@@ -219,4 +230,4 @@ class ClientArgs(object):
         :param cmds: Additional subcommands
         :type  cmds: dict
         """
-        LENSE.CLIENT.ARGS = cls(desc, opts, cmds, base)
+        LENSE.CLIENT.ARGS = cls(desc, opts, cmds, objs, base)

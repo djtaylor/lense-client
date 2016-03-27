@@ -25,6 +25,7 @@ class ClientInterface(object):
         self.HANDLERS = None
         self.ARGS     = None
         self.REST     = import_class('ClientREST', 'lense.client.rest', init=False)
+        self.GITHUB   = import_class('ClientGitHub', 'lense.client.github', init=False)
         
         # Support cache
         self.support  = None
