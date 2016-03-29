@@ -1,7 +1,7 @@
 import json
 from sys import exit
-from os import makedirs
 from threading import Thread
+from os import makedirs, environ, geteuid
 from os.path import expanduser, isfile, isdir
 
 # Lense Libraries
@@ -26,6 +26,10 @@ class ClientInterface(object):
         self.ARGS     = None
         self.REST     = import_class('ClientREST', 'lense.client.rest', init=False)
         self.GITHUB   = import_class('ClientGitHub', 'lense.client.github', init=False)
+        
+        # Store the calling user account if using sudo
+        self.sysuser  = environ.get('SUDO_USER', environ.get('LOGNAME', None))
+        self.as_sudo  = True if geteuid() == 0 else False
         
         # Support cache
         self.support  = None
@@ -69,6 +73,25 @@ class ClientInterface(object):
         self.HANDLERS = import_class('ClientHandlers', 'lense.client.handlers')
         self.ARGS     = import_class('ClientArgs', 'lense.client.args', init=False)
 
+    def get_authentication(self):
+        """
+        Return a dictionary of authentication attributes.
+        """
+        
+        # User / group / key
+        auth = {
+            'user': LENSE.CLIENT.ARGS.get('user'),
+            'group': LENSE.CLIENT.ARGS.get('group'),
+            'key': LENSE.CLIENT.ARGS.get('key')
+        }
+        
+        # Make sure required authentication parameters are set
+        for k,v in auth.iteritems():
+            if not v: LENSE.die('Missing required parameter "{0}", not found in arguments or environment'.format(k))
+
+        # Return authentication parameters
+        return auth
+    
     def params(self, keys):
         """
         Retrieve a dictionary of object attributes.

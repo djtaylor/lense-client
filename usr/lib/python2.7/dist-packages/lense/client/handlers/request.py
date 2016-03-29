@@ -88,19 +88,8 @@ class ClientHandler_Request(ClientHandler_Base):
         # If printing command info
         if self.info: return self.command_info()
         
-        # User / group / key
-        auth = {
-            'user': LENSE.CLIENT.ARGS.get('user'),
-            'group': LENSE.CLIENT.ARGS.get('group'),
-            'key': LENSE.CLIENT.ARGS.get('key')
-        }
-        
-        # Make sure required authentication parameters are set
-        for k,v in auth.iteritems():
-            if not v: LENSE.die('Missing required parameter "{0}", not found in arguments or environment'.format(k))
-        
         # Construct REST client
-        LENSE.CLIENT.REST.construct(**auth)
+        LENSE.CLIENT.REST.construct(**LENSE.CLIENT.get_authentication())
         
         # Request parameters
         params = {

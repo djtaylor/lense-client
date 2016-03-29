@@ -155,6 +155,23 @@ class ClientArgs(object):
         """
         Look for API connection environment variables.
         """
+        
+        # If calling with sudo, merge sudo user environment
+        if LENSE.CLIENT.as_sudo:
+            user_env  = '/home/{0}/.lense/env.sh'.format(LENSE.CLIENT.sysuser)
+            env_regex = re.compile(r'^export (LENSE_[^=]*)=\"([^"]*)\"$')
+            
+            # Get API environment variables
+            with open(user_env, 'r') as f:
+                for line in f.readlines():
+                    if line.startswith('export LENSE'):
+                        env_key = env_regex.sub(r'\g<1>', line.lstrip().rstrip())
+                        env_val = env_regex.sub(r'\g<2>', line.lstrip().rstrip())
+        
+                        # Update environment
+                        environ[env_key] = env_val
+        
+        # Look for Lense API environment variables
         for k,v in {
             'user':  'LENSE_API_USER',
             'key':   'LENSE_API_KEY',

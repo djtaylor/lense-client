@@ -1,7 +1,11 @@
 import re
 import json
-from os import listdir
 from urllib import urlopen
+from os import listdir, path, environ
+
+# Django Libraries
+from django import setup as django_setup
+from django.conf import settings as django_settings
 
 # Lense Libraries
 from lense.common.utils import ensure_root
@@ -70,7 +74,9 @@ class ClientHandler_Module(ClientHandler_Base):
         modules = []
         for module in listdir(self.root):
             try:
-                modules.append(json.loads(open('{0}/{1}/manifest.json'.format(self.root, module), 'r').read()))
+                module_root = '{0}/{1}'.format(self.root, module)
+                if path.isdir(module_root):
+                    modules.append(json.loads(open('{0}/manifest.json'.format(module_root), 'r').read()))
                 
             # Failed to load module manifest
             except Exception as e:
@@ -172,15 +178,43 @@ class ClientHandler_Module(ClientHandler_Base):
         # Check module argument
         self._check_module_arg()
         
-        # Get the remote manifest
+        # Remote manifest / local module root
         manifest = self._get_github_manifest()
+        local    = '{0}/{1}'.format(self.root, manifest['name'])
     
         # Download the module
         LENSE.CLIENT.GITHUB.clone(
-            local  = '{0}/{1}'.format(self.root, manifest['name']),
+            local  = local,
             remote = self.module,
             branch = manifest['source'].get('branch', 'master')
         )
+        
+        # Set the Django settings module
+        environ['DJANGO_SETTINGS_MODULE'] = 'lense.engine.api.core.settings'
+        
+        # Setup Django for the bootstrap run
+        #django_setup()
+        
+        # Engine module objects
+        if path.isdir('{0}/engine'.format(local)):
+            
+            # Handler manifests
+            handler_manifests = '{0}/engine/handlers/manifests'.format(local)
+            
+            # Construct REST client
+            LENSE.CLIENT.REST.construct(**LENSE.CLIENT.get_authentication())
+            
+            # Load handler manifests
+            for manifest in listdir(handler_manifests):
+                handler_data = json.loads(open('{0}/{1}'.format(handler_manifests, manifest)).read())
+                
+                # Disable module validation
+                handler_data['validate'] = False
+                
+                # Create the handler
+                response = LENSE.CLIENT.REQUEST.request('handler', 'POST', handler_data)
+            
+                print response
         
         # Module installation success
         LENSE.FEEDBACK.success('Installed module: {0}@{1}'.format(manifest['name'], manifest['source']['uri']))
