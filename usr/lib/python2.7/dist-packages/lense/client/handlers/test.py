@@ -1,4 +1,5 @@
 import json
+from time import time
 from sys import getsizeof, exit
 from os.path import isfile
 
@@ -146,6 +147,7 @@ class ClientHandler_Test(ClientHandler_Base):
             has_errors = False
         
             # Scan each test block
+            test_start = time()
             for test_block in section_block['tests']:
                 LENSE.FEEDBACK.block([
                     'ID:          {0}'.format(test_block['id']),
@@ -163,7 +165,9 @@ class ClientHandler_Test(ClientHandler_Base):
                 }
                 
                 # Make the request
-                response = LENSE.CLIENT.REST.request(**params)
+                req_start = time()
+                response  = LENSE.CLIENT.REST.request(**params)
+                req_time  = '{0} seconds'.format(str(time() - req_start))
                 
                 # Expects block
                 expects  = { 'code': 200 } if not 'expects' in test_block else test_block['expects']
@@ -177,12 +181,13 @@ class ClientHandler_Test(ClientHandler_Base):
                     
                     # Response data mismatch
                     if not data_ok[0]:
-                        LENSE.FEEDBACK.error('expects.code={0}, response.code={1}, data.expects[{2}]={3} data.returned[{2}]={4}'.format(
+                        LENSE.FEEDBACK.error('expects.code={0}, response.code={1}, data.expects[{2}]={3} data.returned[{2}]={4}, request_time={5}'.format(
                             expects['code'],
                             response.code,
                             data_ok[1]['key'],
                             data_ok[1]['value'][0],
-                            data_ok[1]['value'][1]
+                            data_ok[1]['value'][1],
+                            req_time
                         ))
                         has_errors = True
                         
@@ -193,18 +198,20 @@ class ClientHandler_Test(ClientHandler_Base):
                         
                     # Response data match
                     else:
-                        LENSE.FEEDBACK.success('expects.code={0}, response.code={1}, data.returned=OK, rsp_size_bytes={2}'.format(
+                        LENSE.FEEDBACK.success('expects.code={0}, response.code={1}, data.returned=OK, rsp_size_bytes={2}, request_time={3}'.format(
                             expects['code'],
                             response.code,
-                            getsizeof(response.content)
+                            getsizeof(response.content),
+                            req_time
                         ))
                     
                 # Response code mismatch
                 else:
-                    LENSE.FEEDBACK.error('expects.code={0}, response.code={1}, rsp_size_bytes={2}'.format(
+                    LENSE.FEEDBACK.error('expects.code={0}, response.code={1}, rsp_size_bytes={2}, request_time={3}'.format(
                         expects['code'],
                         response.code,
-                        getsizeof(response.content)
+                        getsizeof(response.content),
+                        req_time
                     ))
                     has_errors = True
                     
@@ -217,4 +224,4 @@ class ClientHandler_Test(ClientHandler_Base):
             if has_errors:
                 LENSE.FEEDBACK.warn('Not all tests completed successfully. Please check the server logs to troubleshoot')
             else:
-                LENSE.FEEDBACK.success('All tests completed successfully!')
+                LENSE.FEEDBACK.success('All tests completed successfully in: {0} seconds'.format(str(time() - test_start)))

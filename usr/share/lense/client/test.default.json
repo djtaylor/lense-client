@@ -285,18 +285,6 @@
                     }
                 },
                 {
-                    "id": "delete_protected_handler",
-                    "desc": "Attempt to delete a protected handler",
-                    "path": "handler",
-                    "method": "DELETE",
-                    "data": {
-                        "uuid": "1a9910fe-1e9a-417a-bb1b-ca8dbfa59168"
-                    },
-                    "expects": {
-                        "code": 403
-                    }
-                },
-                {
                     "id": "create_dummy_handler",
                     "desc": "Create a dummy handler",
                     "path": "handler",
