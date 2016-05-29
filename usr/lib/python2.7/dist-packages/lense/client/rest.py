@@ -136,9 +136,18 @@ class ClientREST(object):
         # Base parameters
         params   = { 'headers': self.headers() }
     
+        # Metaparameters
+        count    = LENSE.CLIENT.ARGS.get('count')
+    
         # If data provided
         if data:
             params[data_key] = ClientREST.load_data(data_key, data)
+    
+        # If counting objects
+        if count:
+            if not data_key in params:
+                params[data_key] = {}
+            params[data_key]['count'] = count
     
         # Return request parameters
         return params

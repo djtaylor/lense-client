@@ -66,7 +66,7 @@ class ClientHandler_Request(ClientHandler_Base):
         # Raw output / command information
         self.raw  = LENSE.CLIENT.ARGS.get('raw', False)
         self.info = LENSE.CLIENT.ARGS.get('info', False)
-        
+                
     def command_info(self):
         """
         Print supported command information and exit.
