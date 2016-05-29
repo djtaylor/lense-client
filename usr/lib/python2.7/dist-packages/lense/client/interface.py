@@ -164,7 +164,7 @@ class ClientInterface(object):
                 content = '\n\n{0}\n'.format(json.dumps(response.content, indent=2))
             except:
                 pass
-            LENSE.FEEDBACK.success('HTTP {0}: {1}'.format(response.code, content))
+            LENSE.FEEDBACK.success('HTTP {0}: objects_retrieved={1}{2}'.format(response.code, len(response.content), content))
         
         # Request finished
         exit(0)
