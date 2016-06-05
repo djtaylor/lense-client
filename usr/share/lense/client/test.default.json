@@ -29,16 +29,21 @@
                     "method": "GET"
                 },
                 {
-                    "id": "get_acl_keys",
-                    "desc": "Retrieve all ACL keys",
-                    "path": "acl/keys",
-                    "method": "GET"
-                },
-                {
-                    "id": "get_acl_objects",
-                    "desc": "Retrieve all ACL objects",
-                    "path": "acl/objects",
-                    "method": "GET"
+                    "id": "create_base_group",
+                    "desc": "Create a base test group",
+                    "path": "group",
+                    "method": "POST",
+                    "data": {
+                        "uuid": "777c46b2-9445-4f48-9e8b-b4d9e7628645",
+                        "name": "base",
+                        "desc": "Base group"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "777c46b2-9445-4f48-9e8b-b4d9e7628645"
+                        }
+                    }
                 },
                 {
                     "id": "create_test_user",
@@ -50,7 +55,8 @@
                         "username": "testuser",
                         "password": "test123!!",
                         "password_confirm": "test123!!",
-                        "email": "djtaylor13@gmail.com"
+                        "email": "djtaylor13@gmail.com",
+                        "group": "777c46b2-9445-4f48-9e8b-b4d9e7628645"
                     },
                     "expects": {
                         "code": 200,
@@ -248,7 +254,7 @@
                     "path": "user",
                     "method": "DELETE",
                     "data": {
-                        "uuid": "00000000-0000-0000-0000-000000000000"
+                        "uuid": "00000000-0000-0000-0000-111111111111"
                     },
                     "expects": {
                         "code": 400
@@ -281,6 +287,21 @@
                         "code": 200,
                         "data": {
                             "uuid": "7acc46b2-9445-4f48-9e8b-b4d9e7628645"
+                        }
+                    }
+                },
+                {
+                    "id": "delete_base_group",
+                    "desc": "Delete the base group",
+                    "path": "group",
+                    "method": "DELETE",
+                    "data": {
+                        "uuid": "777c46b2-9445-4f48-9e8b-b4d9e7628645"
+                    },
+                    "expects": {
+                        "code": 200,
+                        "data": {
+                            "uuid": "777c46b2-9445-4f48-9e8b-b4d9e7628645"
                         }
                     }
                 },
@@ -369,74 +390,6 @@
                     "desc": "Attempt to delete the dummy handler again",
                     "path": "handler",
                     "method": "DELETE",
-                    "data": {
-                        "uuid": "11111111-2222-3333-4444-555555555555"
-                    },
-                    "expects": {
-                        "code": 404
-                    }
-                },
-                {
-                    "id": "create_dummy_acl_key",
-                    "desc": "Create a dummy ACL key",
-                    "path": "acl/keys",
-                    "method": "POST",
-                    "data": {
-                        "uuid": "11111111-2222-3333-4444-555555555555",
-                        "name": "dummy_acl_key",
-                        "desc": "Dummy ACL key",
-                        "type_object": false,
-                        "type_global": true
-                    }
-                },
-                {
-                    "id": "create_dummy_acl_object",
-                    "desc": "Create a dummy ACL object",
-                    "path": "acl/objects",
-                    "method": "POST",
-                    "data": {
-                        "uuid": "11111111-2222-3333-4444-555555555555",
-                        "name": "dummy_acl_object",
-                        "object_mod": "dummy.module",
-                        "object_cls": "Dummy_Class",
-                        "object_key": "uuid",
-                        "object_type": "dummy",
-                        "def_acl": "11111111-2222-3333-4444-555555555555",
-                        "validate": false
-                    }
-                },
-                {
-                    "id": "delete_dummy_acl_object",
-                    "desc": "Delete the dummy ACL object",
-                    "path": "acl/objects",
-                    "method": "DELETE",
-                    "data": {
-                        "uuid": "11111111-2222-3333-4444-555555555555"
-                    }
-                },
-                {
-                    "id": "get_dummy_acl_key",
-                    "desc": "Get the dummy ACL key",
-                    "path": "acl/keys",
-                    "method": "GET",
-                    "data": {
-                        "uuid": "11111111-2222-3333-4444-555555555555"
-                    }
-                },
-                {
-                    "id": "delete_dummy_acl_key",
-                    "desc": "Delete a dummy ACL key",
-                    "path": "acl/keys",
-                    "method": "DELETE",
-                    "data": {
-                        "uuid": "11111111-2222-3333-4444-555555555555"
-                    }
-                },
-                {
-                    "id": "get_deleted_dummy_acl_key",
-                    "desc": "Attempt to get the deleted dummy ACL key",
-                    "path": "acl/keys",
-                    "method": "GET",
                     "data": {
                         "uuid": "11111111-2222-3333-4444-555555555555"
                     },
