@@ -52,7 +52,7 @@ class ClientInterface(object):
         else:
         
             # Get server API support
-            response = LENSE.CLIENT.REST.request_anonymous('support', 'GET')
+            response = LENSE.CLIENT.REST.request_anonymous('handler/list', 'GET')
             
             # Failed to retrieve server API support
             LENSE.CLIENT.ensure_request(response.code,
